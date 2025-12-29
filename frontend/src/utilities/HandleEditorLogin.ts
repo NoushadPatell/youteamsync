@@ -1,24 +1,30 @@
-import {database, firebaseAuth} from "./firebaseconf.ts";
+import {firebaseAuth} from "./firebaseconf.ts";
 import {GoogleAuthProvider,signInWithPopup} from "firebase/auth"
-import {doc, getDoc, setDoc} from "firebase/firestore";
-
+import { apiCall } from "@/utilities/api.ts";
 
 export const HandleEditorLogin=async () =>{
 	try {
-		const provider= new GoogleAuthProvider();
-		const {user}= await signInWithPopup(firebaseAuth,provider);
-		if(user.email  && user.emailVerified){
-			return new Promise((resolve)=>{
-				getDoc(doc(database,"editors",user.email as string)).then((snap)=>{
-					if(!snap.exists()){
-						setDoc(doc(database,"editors",user.email as string),{
-							creators:[],
-							rating:0,
-							people:0
-						})
-					}
-					resolve(user.email);
-				})
+		const provider = new GoogleAuthProvider();
+		provider.setCustomParameters({
+			prompt: 'select_account'
+		});
+		
+		const {user}= await signInWithPopup(firebaseAuth, provider);
+		if(user.email && user.emailVerified){
+			return new Promise(async (resolve, reject)=>{
+				try {
+					// Call backend to create/check editor in PostgreSQL
+					const response = await apiCall(`/api/editor/register`, 'POST', {
+						email: user.email,
+						creators: [],
+						rating: 0,
+						people: 0
+					});
+
+					resolve(response.email || user.email);
+				} catch (error) {
+					reject(new Error("Error occurred while registering editor"));
+				}
 			})
 		}
 		else{

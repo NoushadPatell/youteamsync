@@ -2,11 +2,10 @@ import React, {memo, useCallback, useEffect, useRef, useState} from "react";
 import {HoverCard, HoverCardContent, HoverCardTrigger} from "@/components/ui/hover-card.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Progress} from "@/components/ui/progress.tsx";
-import {doc, getDoc, setDoc} from "firebase/firestore";
-import {database, fireStorage} from "@/utilities/firebaseconf.ts";
 import {SHA256} from "crypto-js";
-import {StorageReference, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
 import {videoInfoType} from "@/utilities/getCreatorVideos.ts";
+import { uploadVideo } from "@/utilities/api.ts";
+import {toast} from "sonner";
 
 export const UploadFile = memo(({dispatch, creatorEmail, editorEmail, userType}: {
     creatorEmail: string,
@@ -17,39 +16,9 @@ export const UploadFile = memo(({dispatch, creatorEmail, editorEmail, userType}:
     const inputUploadRef = useRef<HTMLInputElement>(null)
     const [uploadLoading, setUploadLoading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const fireStorageUpload = useCallback(async (storeRef: StorageReference,file:File)=>{
-        return new Promise((resolve, reject)=>{
-            const task=uploadBytesResumable(storeRef,file);
-            task.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log('Upload is ' + progress + '% done');
-                    if(progress>=95){
-                        setUploadProgress(95);
-                    }
-                    else{
-                        setUploadProgress(progress);
-                    }
 
-                }, (error) => {
-                    reject(error.message)
-                },()=>{
-                getDownloadURL(task.snapshot.ref).then((url)=>{
-                    resolve(url);
-                    setUploadProgress(98);
-                })
-                }
-            );
-        })
-
-
-    },[])
     const uploadVideoFunc=useCallback(async ()=>{
         try{
-            const snap=await getDoc(doc(database,"creators",creatorEmail))
-            if(editorEmail!==""&& (!snap.exists() || snap.data().editor!=editorEmail)){
-                return;
-            }
             if(inputUploadRef.current && inputUploadRef.current.files){
                 setUploadLoading(true);
                 const file=inputUploadRef.current.files[0];
@@ -59,24 +28,76 @@ export const UploadFile = memo(({dispatch, creatorEmail, editorEmail, userType}:
                 const CurrDateTime=(new Date().getTime()).toString();
                 const uniqueId=SHA256(CurrDateTime+creatorEmail).toString();
                 const filepath=uniqueId+"."+fileExt;
-                const storeRef=ref(fireStorage,filepath);
-                const fileUrl =await fireStorageUpload(storeRef,file) as string;
-                console.log("uploaded")
-                const newVideo={id: CurrDateTime, title: filename, description: "", tags: "", thumbNailUrl: "", filepath,fileUrl, thumbNailPath: "",rating: 0,youtubeId:"", editedBy: (userType==="editor")?editorEmail:""};
-                await setDoc(doc(database, "creators" + "/" + creatorEmail + "/videos", CurrDateTime),newVideo );
+                
+                // Simulate upload progress
+                setUploadProgress(50);
+                
+                // Upload to backend
+                const newVideo={
+                    id: CurrDateTime, 
+                    title: filename, 
+                    description: "", 
+                    tags: "", 
+                    thumbNailUrl: "", 
+                    filepath,
+                    fileUrl: filepath, 
+                    thumbNailPath: "",
+                    rating: 0,
+                    youtubeId:"", 
+                    editedBy: (userType==="editor")?editorEmail:""
+                };
+                
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('filename', filepath);
+                formData.append('creatorEmail', creatorEmail);
+                formData.append('videoData', JSON.stringify(newVideo));
+                
+                // Upload file and metadata
+                const response = await fetch('http://localhost:5000/api/videos/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+                
+                setUploadProgress(100);
                 dispatch({type: 'addVideo', payload: newVideo})
+                
+                toast("Video uploaded successfully", {
+                    action: {
+                        label: "Close",
+                        onClick: () => console.log("Close"),
+                    },
+                })
+                
                 setUploadLoading(false);
                 setUploadProgress(0);
-
+                
+                // Reset input
+                if(inputUploadRef.current){
+                    inputUploadRef.current.value = '';
+                }
             }
         }
         catch (e) {
             console.log(e)
             console.log("error in uploading file");
+            toast("Error uploading video", {
+                action: {
+                    label: "Close",
+                    onClick: () => console.log("Close"),
+                },
+            })
+            setUploadLoading(false);
+            setUploadProgress(0);
         }
 
 
-    }, [creatorEmail, dispatch, editorEmail, fireStorageUpload, userType])
+    }, [creatorEmail, dispatch, editorEmail, userType])
 
     useEffect(() => {
         const temp=inputUploadRef.current

@@ -3,11 +3,10 @@ import {useNavigate} from "react-router-dom";
 import {GetCookie} from "@/utilities/get_set_cookies.ts";
 import {VideosPanel} from "@/components/VideosPanel.tsx";
 import {Loader2} from "lucide-react";
-import {doc, getDoc} from "firebase/firestore";
-import {database} from "@/utilities/firebaseconf.ts";
 import {Button} from "@/components/ui/button.tsx";
 import {socket} from "@/utilities/socketConnection.ts";
 import {CreatorsRequest} from "@/components/CreatorsRequest.tsx";
+import { getEditorCreators } from "@/utilities/api.ts";
 
 export const EditorPage=()=>{
     const [loading,setLoading]=useState(true);
@@ -16,14 +15,13 @@ export const EditorPage=()=>{
     const [creators,setCreators]=useState<string[]>([])
     const [currentCreator,setCurrentCreator]=useState("");
     const retrieveCreators=useCallback(async (email:string)=>{
-        return new Promise((resolve)=>{
-            getDoc(doc(database,"editors",email)).then((snap)=>{
-                if(snap.exists()){
-                    resolve(snap.data().creators);
-                }
-            })
-        })
-
+        try {
+            const data = await getEditorCreators(email);
+            return data.creators || [];
+        } catch (error) {
+            console.error("Error fetching creators:", error);
+            return [];
+        }
     },[])
     useEffect(() => {
         const cookie=GetCookie('editor')

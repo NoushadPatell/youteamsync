@@ -1,5 +1,5 @@
-import {collection, getDocs} from "firebase/firestore";
-import {database} from "@/utilities/firebaseconf.ts";
+import { getCreatorVideos as apiGetCreatorVideos } from "@/utilities/api.ts";
+
 export type videoInfoType ={
     filepath:string,
     fileUrl:string,
@@ -15,18 +15,11 @@ export type videoInfoType ={
 }
 
 export const getCreatorVideos=async (creatorEmail:string)=>{
-    return new Promise( (resolve)=>{
-        const videos: videoInfoType[] = [];
-        getDocs(collection(database, "creators" + "/" + creatorEmail + "/videos")).then((docs)=>{
-            docs.forEach((doc) => {
-                const {id,filepath,fileUrl,thumbNailUrl,thumbNailPath,title,description,tags,editedBy,rating,youtubeId}=doc.data();
-                const video={id,filepath,fileUrl,thumbNailUrl,thumbNailPath,title,description,tags,editedBy,rating,youtubeId} as videoInfoType
-                videos.push(video)
-
-            })
-            resolve(videos);
-        })
-
-    })
-
+    try {
+        const videos = await apiGetCreatorVideos(creatorEmail);
+        return videos;
+    } catch (error) {
+        console.error("Error fetching creator videos:", error);
+        return [];
+    }
 }

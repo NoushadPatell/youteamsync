@@ -11,39 +11,25 @@ import {
 import {Button} from "@/components/ui/button.tsx";
 import {videoInfoType} from "@/utilities/getCreatorVideos.ts";
 import {toast} from "sonner";
-import {doc, getDoc, updateDoc} from "firebase/firestore";
-import {database} from "@/utilities/firebaseconf.ts";
+import { updateRating } from "@/utilities/api.ts";
 
 export const Rating=memo(({video,dispatch,creatorEmail}:{dispatch:  React.Dispatch<{type: string, payload: videoInfoType | videoInfoType[] | string}>,video:videoInfoType,creatorEmail:string})=>{
     const [ratingValue,setRatingValue]=useState(video.rating);
     const updateRatingFunc=useCallback(async ()=>{
         if(ratingValue!==0){
             try{
-
                 const editedBy=video.editedBy;
                 const currRating=ratingValue;
-                const prevRating=video.rating;
-                const id=video.id;
-
-                const tempRating=currRating-prevRating;
-                const tempPeople=(prevRating===0)?1:0;
-                const pr1=getDoc(doc(database,"editors",editedBy))
-                const pr2=updateDoc(doc(database, 'creators/' + creatorEmail + "/videos",id), {rating:currRating})
-                const response=await Promise.all([pr1,pr2]);
-                if(response[0].exists()){
-                    await updateDoc(doc(database,"editors",editedBy),{
-                        rating:response[0].data().rating+tempRating,
-                        people:response[0].data().people+tempPeople
-                    })
-                    toast("Rating updated.", {
-                        action: {
-                            label: "Close",
-                            onClick: () => console.log("Close"),
-                        },
-                    })
-                    dispatch({type:"updateVideoInfo",payload: {...video,rating:ratingValue} })
-                }
-
+                
+                await updateRating(creatorEmail, video.id, editedBy, currRating);
+                
+                toast("Rating updated.", {
+                    action: {
+                        label: "Close",
+                        onClick: () => console.log("Close"),
+                    },
+                })
+                dispatch({type:"updateVideoInfo",payload: {...video,rating:ratingValue} })
             }
             catch (e) {
                 toast("Rating update failed.", {

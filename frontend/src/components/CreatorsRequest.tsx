@@ -1,29 +1,26 @@
 import {memo, useCallback, useEffect, useState} from "react";
-import {collection, getDocs} from "firebase/firestore";
-import {database} from "@/utilities/firebaseconf.ts";
 import {toast} from "sonner";
 import {ChatPanel} from "@/components/ChatPanel.tsx";
+import { getCreatorRequests } from "@/utilities/api.ts";
 
 export const CreatorsRequest=memo(({editorEmail}:{editorEmail:string})=>{
     const [creators,setCreators]=useState<string[]>([]);
-    const getCreatorsRequests=useCallback(async ()=>{
-        const docs=await getDocs(collection(database, "editors/" + editorEmail + "/CreatorsRequest"));
-        const tempDocs:string[]=[];
-        docs.forEach((doc)=>{
-            tempDocs.push(doc.id);
-        })
-        setCreators(tempDocs);
-    },[editorEmail])
-    useEffect(() => {
-        getCreatorsRequests().catch(()=>{
+    const getCreatorsRequestsData=useCallback(async ()=>{
+        try {
+            const data = await getCreatorRequests(editorEmail);
+            setCreators(data.requests || []);
+        } catch (error) {
             toast("Error in fetching creators Request.", {
                 action: {
                     label: "Close",
                     onClick: () => console.log("Close"),
                 },
             })
-        })
-    }, [getCreatorsRequests]);
+        }
+    },[editorEmail])
+    useEffect(() => {
+        getCreatorsRequestsData()
+    }, [getCreatorsRequestsData]);
     return <>
         <div className={"bg-gray-400 rounded-md p-2 font-bold mt-2 mb-1"}>
             Request from Creators

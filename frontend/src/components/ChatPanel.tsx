@@ -4,8 +4,7 @@ import {Button} from "@/components/ui/button.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {socket} from "@/utilities/socketConnection.ts";
 import {toast} from "sonner";
-import {doc, getDoc} from "firebase/firestore";
-import {database} from "@/utilities/firebaseconf.ts";
+import { getChatMessages } from "@/utilities/api.ts";
 
 
 export const ChatPanel=memo(({fromUser,toUser,requestEditor}:{fromUser:string,toUser:string,requestEditor:boolean})=>{
@@ -13,22 +12,23 @@ export const ChatPanel=memo(({fromUser,toUser,requestEditor}:{fromUser:string,to
     const [chats,setChats]=useState<{from:string,to:string,message:string}[]>([]);
     const [chatInput,setChatInput]=useState("");
     const getPreviousChats=useCallback(async ()=>{
-
-            const emailConc=[fromUser,toUser];
-            emailConc.sort();
-            const chatId=emailConc[0]+emailConc[1];
-            let chats:{from:string,to:string,message:string}[]=[];
-            const snap=await getDoc(doc(database,"chats",chatId));
-            if(snap.exists()){
-                chats=snap.data().chats as {from:string,to:string,message:string}[];
-            }
+        try {
+            const data = await getChatMessages(fromUser, toUser);
+            let chats = data.chats || [];
             if (chats){
                 if(chatRef.current){
                     chatRef.current.scrollTop=chatRef.current.scrollHeight;
                 }
                 setChats(chats);
             }
-
+        } catch (error) {
+            toast("Error in fetching messages.", {
+                action: {
+                    label: "Close",
+                    onClick: () => console.log("Close"),
+                },
+            })
+        }
     },[fromUser, toUser])
     const sendMessage=useCallback((message:string)=>{
         message.trim();
@@ -47,14 +47,7 @@ export const ChatPanel=memo(({fromUser,toUser,requestEditor}:{fromUser:string,to
         }
     },[fromUser, toUser])
     useEffect(() => {
-        getPreviousChats().catch(()=>{
-            toast("Error in fetching messages.", {
-                action: {
-                    label: "Close",
-                    onClick: () => console.log("Close"),
-                },
-            })
-        })
+        getPreviousChats()
     }, [getPreviousChats]);
     useEffect(() => {
         socket.on("chat",getMessage);

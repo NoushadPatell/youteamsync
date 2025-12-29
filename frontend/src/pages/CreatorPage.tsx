@@ -6,8 +6,7 @@ import {Loader2} from "lucide-react";
 import {MyEditor} from "@/components/MyEditor.tsx";
 import {Toaster} from "@/components/ui/sonner.tsx";
 import {socket} from "@/utilities/socketConnection.ts";
-import {doc, getDoc} from "firebase/firestore";
-import {database} from "@/utilities/firebaseconf.ts";
+import { getCreatorData } from "@/utilities/api.ts";
 
 export const CreatorPage=()=>{
     const [loading,setLoading]=useState(true);
@@ -19,10 +18,10 @@ export const CreatorPage=()=>{
         if (cookie) {
             const {email}=JSON.parse(cookie);
             setEmail(email as string)
-            getDoc(doc(database,"creators",email)).then((snap)=>{
-                if(snap.exists()){
-                    setEditor(snap.data().editor as string);
-                }
+            getCreatorData(email).then((data)=>{
+                setEditor(data.editor as string);
+                setLoading(false);
+            }).catch(()=>{
                 setLoading(false);
             })
             socket.on("connect",()=>{
@@ -46,7 +45,5 @@ export const CreatorPage=()=>{
     </>:<div className={"h-svh flex justify-center items-center"}>
         <Loader2 className={"animate-spin w-4 h-4"}/>
     </div>
-
-
 
 }

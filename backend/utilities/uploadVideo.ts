@@ -1,18 +1,20 @@
-import { fireStorage} from "./firebaseConfiguration";
+import fs from 'fs';
+import path from 'path';
 import {google} from "googleapis";
-import {getMetadata, getStream, ref} from "firebase/storage";
 import { OAuth2Client } from "google-auth-library";
 
 export const uploadVideo = async (title: string, description: string, tags: string[], filepath: string, ytAuth: OAuth2Client):Promise<string> =>{
     try {
         let progress=0;
 
-        const {size}=await getMetadata(ref(fireStorage,filepath));
+        const fileStats = fs.statSync(filepath);
+        const size = fileStats.size;
 
         return new Promise((resolve, reject)=>{
-            const stream=getStream(ref(fireStorage,filepath));
-            stream.on("data",(chunk)=>{
-                progress+=chunk.length;
+            const stream = fs.createReadStream(filepath);
+            stream.on("data",(chunk: any)=>{
+                const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
+                progress+=buffer.length;
                 console.log("uploaded", (progress*100)/size );
             })
             const service = google.youtube('v3')
@@ -53,7 +55,7 @@ export const uploadVideo = async (title: string, description: string, tags: stri
 
     }
     catch (e) {
-        throw "error in getting file size from database";
+        throw "error in getting file size from local storage";
     }
 
 

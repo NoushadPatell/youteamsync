@@ -1,6 +1,4 @@
 import React, {memo, useCallback, useRef, useState} from "react";
-import {database, fireStorage} from "@/utilities/firebaseconf.ts";
-import {deleteObject, getDownloadURL, ref, StorageReference, uploadBytes} from "firebase/storage";
 import {Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
@@ -11,10 +9,11 @@ import {FiDownloadCloud} from "react-icons/fi";
 import {MdDeleteForever} from "react-icons/md";
 import {videoInfoType} from "@/utilities/getCreatorVideos.ts";
 import {Rating} from "@/components/Rating.tsx";
-import {deleteDoc, doc, updateDoc} from "firebase/firestore";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {toast} from "sonner";
 import {SHA256} from "crypto-js";
+import { updateVideo, deleteVideo as apiDeleteVideo } from "@/utilities/api.ts";
+
 type videoMetaInfoType={
     title: string, description: string, tags: string
 }
@@ -28,21 +27,12 @@ export const Video=memo(({video,dispatch,creatorEmail,userType}: {
     const promptInfo=useRef<HTMLButtonElement>(null)
     const [videoInfo,setVideoInfo]=useState<videoMetaInfoType>({title:video.title,description:video.description,tags:video.tags})
     const [uploadingVideo,setUploadingVideo]=useState(false);
-    const fireStorageUpload = useCallback(async (storeRef: StorageReference,file:File)=>{
-        return new Promise((resolve, reject)=>{
-            uploadBytes(storeRef,file).then((snapshot)=>{
-                getDownloadURL(snapshot.ref).then((url)=>{
-                    resolve(url);
-                })
-            }).catch((e)=>{
-                reject(e);
-            })
-        })
-    },[])
+
     const updateVideoInfoFunc=useCallback(async()=>{
         try {
             let thumbNailUrl=video.thumbNailUrl;
             let thumbNailPath=video.thumbNailPath;
+            
             if(thumbNailRef.current && thumbNailRef.current.files){
                 const file=thumbNailRef.current.files[0];
                 const fileName=file.name;
@@ -51,16 +41,30 @@ export const Video=memo(({video,dispatch,creatorEmail,userType}: {
                 const currDateTime=(new Date().getTime()).toString();
                 const uniqueId=SHA256(currDateTime+creatorEmail).toString();
                 thumbNailPath =uniqueId+"."+fileExt;
-                const storeRef=ref(fireStorage,thumbNailPath);
-                thumbNailUrl =await fireStorageUpload(storeRef,file) as string;
-                if(video.thumbNailPath){
-                    deleteObject(ref(fireStorage,video.thumbNailPath)).catch(()=>{
-                        console.log("error in deleting previous thumbNail");
-                    })
+                
+                // Upload thumbnail to backend
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('filename', thumbNailPath);
+                
+                const response = await fetch('http://localhost:5000/api/thumbnail/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Thumbnail upload failed');
                 }
-
+                
+                thumbNailUrl = thumbNailPath;
             }
-            await updateDoc(doc(database, 'creators/' + creatorEmail + "/videos", video.id), {...videoInfo,thumbNailPath,thumbNailUrl});
+            
+            await updateVideo(creatorEmail, video.id, {
+                ...videoInfo,
+                thumbNailPath,
+                thumbNailUrl
+            });
+            
             dispatch({type:'updateVideoInfo',payload: {...video,...videoInfo,thumbNailPath,thumbNailUrl}})
             toast("Updated Successfully.", {
                 action: {
@@ -78,29 +82,37 @@ export const Video=memo(({video,dispatch,creatorEmail,userType}: {
                 },
             })
         }
-    },[creatorEmail, dispatch, fireStorageUpload, video, videoInfo])
+    },[creatorEmail, dispatch, video, videoInfo])
     
-    const deleteVideo=useCallback( ()=>{
-        //delete from files database
-        const pr1=deleteDoc(doc(database,"creators/"+creatorEmail+"/videos",video.id)).catch(()=>{
-            console.log("error in deleting from files database");
-        })
-        //delete from storage
-        const pr2=deleteObject(ref(fireStorage,video.filepath)).catch(()=>{
-            console.log("error in deleting from storage");
-        })
-        Promise.all([pr1,pr2]).then(()=>{
+    const deleteVideoFunc=useCallback(async ()=>{
+        try {
+            await apiDeleteVideo(creatorEmail, video.id);
             dispatch({type:'deleteVideo',payload:video.id})
-        })
+            toast("Video deleted successfully", {
+                action: {
+                    label: "Close",
+                    onClick: () => console.log("Close"),
+                },
+            })
+        } catch (e) {
+            console.log(e)
+            toast("Error deleting video", {
+                action: {
+                    label: "Close",
+                    onClick: () => console.log("Close"),
+                },
+            })
+        }
 
     },[creatorEmail, dispatch, video])
+    
     const uploadToYoutube=useCallback(()=>{
         if(uploadingVideo){
             return;
         }
         setUploadingVideo(true);
         const data={id:video.id,email:creatorEmail};
-        fetch(`${import.meta.env.VITE_BACKEND}/uploadVideo`,{
+        fetch(`http://localhost:5000/api/videos/${creatorEmail}/${video.id}/publish`,{
             method:'POST',
             headers:{
                 'Content-Type': 'application/json'
@@ -197,7 +209,7 @@ export const Video=memo(({video,dispatch,creatorEmail,userType}: {
                 {userType==="creator" && video.editedBy? <Rating dispatch={dispatch} video={video} creatorEmail={creatorEmail}/>  :<></>}
                 {userType == "creator" ? <Button title={"Upload to YouTube"}  className={"w-16"} variant={"secondary"} disabled={uploadingVideo} onClick={uploadToYoutube}>{uploadingVideo ? <LuLoader2 className={"animate-spin w-full h-full"} />:<GrUploadOption className={"w-full h-full"}  />}</Button>:<></>}
                 <Button className={"w-16"}><a target={"_blank"} className={"w-full h-full"} href={video.fileUrl}><FiDownloadCloud className={"w-full h-full"} /></a></Button>
-                {userType == "creator" ? <Button variant={"destructive"} onClick={deleteVideo} className={"w-16"} ><MdDeleteForever className={"w-full h-full"}  /></Button>:<></>}
+                {userType == "creator" ? <Button variant={"destructive"} onClick={deleteVideoFunc} className={"w-16"} ><MdDeleteForever className={"w-full h-full"}  /></Button>:<></>}
 
             </div>
 

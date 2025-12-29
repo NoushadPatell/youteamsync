@@ -1,8 +1,7 @@
 
 import express, {Router} from "express"
 import {google} from "googleapis";
-import { doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
-import {database} from "./firebaseConfiguration";
+import { query } from "./database";
 import {uploadVideo} from "./uploadVideo";
 import {getTitleDescription} from "./askAI";
 import {uploadThumbnail} from "./uploadThumbnail";
@@ -62,21 +61,25 @@ router.post('/getEmail', async (req, res) => {
         auth: oAuth2Client
     })
 
-    userAuth.userinfo.get((err, response) => {
+    userAuth.userinfo.get(async (err, response) => {
         if (err) {
             res.send(JSON.stringify({"error":"error occurred while fetching email address"}));
         } else if (response && response.data.email) {
             const email = response.data.email;
             res.send(JSON.stringify({email}));
-            getDoc(doc(database, 'creators', email)).then((snap) => {
-                if (!snap.exists()) {
-                    setDoc(doc(database, 'creators', email), {access_token, refresh_token,editor:""});
+            try {
+                const result = await query('SELECT * FROM creators WHERE email = $1', [email]);
+                if (result.rows.length === 0) {
+                    await query(
+                        'INSERT INTO creators (email, access_token, refresh_token, editor) VALUES ($1, $2, $3, $4)',
+                        [email, access_token, refresh_token, ""]
+                    );
                 } else {
-                    updateDoc(doc(database, 'creators', email), {access_token});
+                    await query('UPDATE creators SET access_token = $1 WHERE email = $2', [access_token, email]);
                 }
-            }).catch((err) => {
+            } catch (err) {
                 console.log(err)
-            })
+            }
         }
 
     })
@@ -87,55 +90,77 @@ router.post('/uploadVideo', async(req:express.Request, res:express.Response) => 
     try {
         const {id, email} = req.body;
         console.log(id, email);
-        const snap=await getDoc(doc(database, 'creators/' + email + "/videos", id));
-        if (snap.exists()) {
-            const {filepath, title, description, tags,thumbNailPath,youtubeId} = snap.data() as videoInfoType;
-            const tagsArray = tags.split(',');
-            const docSnap=await getDoc( doc(database,'creators',email))
-            if(docSnap.exists()){
-                const {refresh_token}=docSnap.data();
-
-                //refresh the access token
-                const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_url);
-                oAuth2Client.setCredentials({
-                    refresh_token
-                })
-                const {credentials}=await oAuth2Client.refreshAccessToken();
-
-                await updateDoc(doc(database,"creators",email),{
-                    access_token:credentials.access_token,
-                    refresh_token:credentials.refresh_token
-                })
-                const ytAuth=new google.auth.OAuth2({
-                    credentials
-                })
-                let videoId=youtubeId;
-                if(!videoId){
-                    videoId=await uploadVideo(title, description, tagsArray, filepath,ytAuth)
-                }
-                if(!youtubeId){
-                    await updateDoc(doc(database, 'creators/' + email + "/videos", id), {youtubeId:videoId});
-                }
-                if(thumbNailPath){
-                    await uploadThumbnail(ytAuth,videoId,thumbNailPath);
-                }
-
-
-                res.status(200).send(JSON.stringify({data:"video uploaded successfully"}));
-            }
-            else{
-                res.status(404).send(JSON.stringify({error:"doc not found"}));
-            }
-        }
-        else{
+        
+        // Get video by id and creator email
+        const videoResult = await query(
+            'SELECT * FROM videos WHERE id = $1 AND creator_email = $2',
+            [id, email]
+        );
+        
+        if (videoResult.rows.length === 0) {
             res.status(404).send(JSON.stringify({error:"video not found"}));
+            return;
+        }
+        
+        const {file_path: filepath, title, description, tags, youtube_id: youtubeId} = videoResult.rows[0];
+        const tagsArray = tags.split(',');
+        
+        // Get creator credentials
+        const creatorResult = await query(
+            'SELECT refresh_token FROM creators WHERE email = $1',
+            [email]
+        );
+        
+        if (creatorResult.rows.length === 0) {
+            res.status(404).send(JSON.stringify({error:"creator not found"}));
+            return;
+        }
+        
+        const {refresh_token} = creatorResult.rows[0];
+
+        //refresh the access token
+        const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_url);
+        oAuth2Client.setCredentials({
+            refresh_token
+        })
+        const {credentials}=await oAuth2Client.refreshAccessToken();
+
+        await query(
+            'UPDATE creators SET access_token = $1, refresh_token = $2 WHERE email = $3',
+            [credentials.access_token, credentials.refresh_token, email]
+        );
+        
+        const ytAuth=new google.auth.OAuth2({
+            credentials
+        })
+        
+        let videoId=youtubeId;
+        if(!videoId){
+            videoId=await uploadVideo(title, description, tagsArray, filepath,ytAuth)
+        }
+        if(!youtubeId){
+            await query(
+                'UPDATE videos SET youtube_id = $1 WHERE id = $2',
+                [videoId, id]
+            );
+        }
+        
+        // Handle thumbnail upload if path exists
+        const thumbnailResult = await query(
+            'SELECT * FROM videos WHERE id = $1',
+            [id]
+        );
+        const thumbNailPath = thumbnailResult.rows[0]?.thumbnail_path;
+        
+        if(thumbNailPath){
+            await uploadThumbnail(ytAuth,videoId,thumbNailPath);
         }
 
+        res.status(200).send(JSON.stringify({data:"video uploaded successfully"}));
     }
     catch (err) {
         res.status(501).send(JSON.stringify({error:(err as Error).message}));
     }
-
 
 })
 router.post("/askTitleDescription",async (req,res)=>{
