@@ -32,7 +32,7 @@ const ROLE_PERMISSIONS = {
 teamRouter.get('/api/team/:creatorEmail', async (req, res) => {
     try {
         const { creatorEmail } = req.params;
-        
+
         const result = await query(
             `SELECT 
                 tm.id,
@@ -50,7 +50,7 @@ teamRouter.get('/api/team/:creatorEmail', async (req, res) => {
              ORDER BY tm.invited_at DESC`,
             [creatorEmail]
         );
-        
+
         res.status(200).send(JSON.stringify({ team: result.rows }));
     } catch (err) {
         console.error('Error fetching team:', err);
@@ -63,27 +63,27 @@ teamRouter.post('/api/team/:creatorEmail/invite', async (req, res) => {
     try {
         const { creatorEmail } = req.params;
         const { editorEmail, role } = req.body;
-        
+
         if (!editorEmail || !role) {
             res.status(400).send(JSON.stringify({ error: "Editor email and role required" }));
             return;
         }
-        
+
         if (!['video_editor', 'thumbnail_designer', 'metadata_manager'].includes(role)) {
             res.status(400).send(JSON.stringify({ error: "Invalid role" }));
             return;
         }
-        
+
         // Check if editor exists
         const editorCheck = await query('SELECT email FROM editors WHERE email = $1', [editorEmail]);
         if (editorCheck.rows.length === 0) {
             res.status(404).send(JSON.stringify({ error: "Editor not found. They must register first." }));
             return;
         }
-        
+
         // Add to team
         const permissions = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
-        
+
         const result = await query(
             `INSERT INTO team_members (creator_email, editor_email, role, permissions, status, joined_at)
              VALUES ($1, $2, $3, $4, $5, NOW())
@@ -92,8 +92,8 @@ teamRouter.post('/api/team/:creatorEmail/invite', async (req, res) => {
              RETURNING *`,
             [creatorEmail, editorEmail, role, JSON.stringify(permissions), 'active']
         );
-        
-        res.status(201).send(JSON.stringify({ 
+
+        res.status(201).send(JSON.stringify({
             message: "Team member added successfully",
             member: result.rows[0]
         }));
@@ -107,12 +107,12 @@ teamRouter.post('/api/team/:creatorEmail/invite', async (req, res) => {
 teamRouter.delete('/api/team/:creatorEmail/:editorEmail/:role', async (req, res) => {
     try {
         const { creatorEmail, editorEmail, role } = req.params;
-        
+
         await query(
             'DELETE FROM team_members WHERE creator_email = $1 AND editor_email = $2 AND role = $3',
             [creatorEmail, editorEmail, role]
         );
-        
+
         res.status(200).send(JSON.stringify({ message: "Team member removed successfully" }));
     } catch (err) {
         console.error('Error removing team member:', err);
@@ -124,7 +124,7 @@ teamRouter.delete('/api/team/:creatorEmail/:editorEmail/:role', async (req, res)
 teamRouter.get('/api/team/:creatorEmail/available-editors', async (req, res) => {
     try {
         const { creatorEmail } = req.params;
-        
+
         const result = await query(
             `SELECT 
                 e.email,
@@ -142,7 +142,7 @@ teamRouter.get('/api/team/:creatorEmail/available-editors', async (req, res) => 
              ORDER BY e.rating DESC NULLS LAST`,
             [creatorEmail]
         );
-        
+
         res.status(200).send(JSON.stringify({ editors: result.rows }));
     } catch (err) {
         console.error('Error fetching available editors:', err);
@@ -157,20 +157,20 @@ teamRouter.post('/api/assignments/:videoId/assign', async (req, res) => {
     try {
         const { videoId } = req.params;
         const { creatorEmail, editorEmail, role, notes } = req.body;
-        
+
         // Verify team member exists with this role
         const teamCheck = await query(
             'SELECT * FROM team_members WHERE creator_email = $1 AND editor_email = $2 AND role = $3 AND status = $4',
             [creatorEmail, editorEmail, role, 'active']
         );
-        
+
         if (teamCheck.rows.length === 0) {
-            res.status(403).send(JSON.stringify({ 
-                error: "Editor is not in your team with this role" 
+            res.status(403).send(JSON.stringify({
+                error: "Editor is not in your team with this role"
             }));
             return;
         }
-        
+
         // Create assignment
         const result = await query(
             `INSERT INTO video_assignments 
@@ -181,8 +181,8 @@ teamRouter.post('/api/assignments/:videoId/assign', async (req, res) => {
              RETURNING *`,
             [videoId, creatorEmail, editorEmail, role, notes || '']
         );
-        
-        res.status(201).send(JSON.stringify({ 
+
+        res.status(201).send(JSON.stringify({
             message: "Task assigned successfully",
             assignment: result.rows[0]
         }));
@@ -196,7 +196,7 @@ teamRouter.post('/api/assignments/:videoId/assign', async (req, res) => {
 teamRouter.get('/api/assignments/:videoId', async (req, res) => {
     try {
         const { videoId } = req.params;
-        
+
         const result = await query(
             `SELECT 
                 va.*,
@@ -208,7 +208,7 @@ teamRouter.get('/api/assignments/:videoId', async (req, res) => {
              ORDER BY va.assigned_at DESC`,
             [videoId]
         );
-        
+
         res.status(200).send(JSON.stringify({ assignments: result.rows }));
     } catch (err) {
         console.error('Error fetching assignments:', err);
@@ -220,7 +220,7 @@ teamRouter.get('/api/assignments/:videoId', async (req, res) => {
 teamRouter.get('/api/assignments/editor/:editorEmail', async (req, res) => {
     try {
         const { editorEmail } = req.params;
-        
+
         const result = await query(
             `SELECT 
                 va.*,
@@ -240,7 +240,7 @@ teamRouter.get('/api/assignments/editor/:editorEmail', async (req, res) => {
                 va.assigned_at DESC`,
             [editorEmail]
         );
-        
+
         res.status(200).send(JSON.stringify({ assignments: result.rows }));
     } catch (err) {
         console.error('Error fetching editor assignments:', err);
@@ -253,17 +253,17 @@ teamRouter.put('/api/assignments/:assignmentId/status', async (req, res) => {
     try {
         const { assignmentId } = req.params;
         const { status, notes } = req.body;
-        
+
         if (!['assigned', 'in_progress', 'completed'].includes(status)) {
             res.status(400).send(JSON.stringify({ error: "Invalid status" }));
             return;
         }
-        
+
         await query(
             'UPDATE video_assignments SET task_status = $1, notes = COALESCE($2, notes) WHERE id = $3',
             [status, notes, assignmentId]
         );
-        
+
         res.status(200).send(JSON.stringify({ message: "Status updated successfully" }));
     } catch (err) {
         console.error('Error updating assignment:', err);
@@ -275,9 +275,9 @@ teamRouter.put('/api/assignments/:assignmentId/status', async (req, res) => {
 teamRouter.delete('/api/assignments/:assignmentId', async (req, res) => {
     try {
         const { assignmentId } = req.params;
-        
+
         await query('DELETE FROM video_assignments WHERE id = $1', [assignmentId]);
-        
+
         res.status(200).send(JSON.stringify({ message: "Assignment removed successfully" }));
     } catch (err) {
         console.error('Error removing assignment:', err);
@@ -290,21 +290,43 @@ teamRouter.put('/api/assignments/video/:videoId/editor/:editorEmail', async (req
     try {
         const { videoId, editorEmail } = req.params;
         const { status } = req.body;
-        
+
         if (!['assigned', 'in_progress', 'completed'].includes(status)) {
             res.status(400).send(JSON.stringify({ error: "Invalid status" }));
             return;
         }
-        
+
         await query(
             'UPDATE video_assignments SET task_status = $1 WHERE video_id = $2 AND editor_email = $3',
             [status, videoId, editorEmail]
         );
-        
+
         res.status(200).send(JSON.stringify({ message: "Assignment status updated" }));
     } catch (err) {
         console.error('Error updating assignment:', err);
         res.status(500).send(JSON.stringify({ error: "Error updating assignment" }));
+    }
+});
+
+teamRouter.put('/api/assignments/:assignmentId/status', async (req: Request, res: Response) => {
+    try {
+        const { assignmentId } = req.params;
+        const { status } = req.body;
+
+        if (!['assigned', 'in_progress', 'completed'].includes(status)) {
+            res.status(400).send(JSON.stringify({ error: "Invalid status" }));
+            return;
+        }
+
+        await query(
+            'UPDATE video_assignments SET task_status = $1 WHERE id = $2',
+            [status, assignmentId]
+        );
+
+        res.status(200).send(JSON.stringify({ message: "Status updated" }));
+    } catch (err) {
+        console.error('Error updating assignment:', err);
+        res.status(500).send(JSON.stringify({ error: "Error updating" }));
     }
 });
 
@@ -314,50 +336,50 @@ export const checkPermission = (action: keyof typeof ROLE_PERMISSIONS['video_edi
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { videoId, creatorEmail } = req.params;
-            
+
             // Get editor email from different sources
-            const editorEmail = req.body.editorEmail || 
-                               req.query.editorEmail || 
-                               req.headers['x-editor-email'];
-            
+            const editorEmail = req.body.editorEmail ||
+                req.query.editorEmail ||
+                req.headers['x-editor-email'];
+
             if (!editorEmail) {
                 res.status(400).send(JSON.stringify({ error: "Editor email required in query, body, or header" }));
                 return;
             }
-            
+
             // Get video's creator - try different ways
             let videoCreatorEmail = creatorEmail; // From route params
-            
+
             if (!videoCreatorEmail && videoId) {
                 const videoResult = await query('SELECT creator_email FROM videos WHERE id = $1', [videoId]);
                 if (videoResult.rows.length > 0) {
                     videoCreatorEmail = videoResult.rows[0].creator_email;
                 }
             }
-            
+
             if (!videoCreatorEmail) {
                 res.status(404).send(JSON.stringify({ error: "Video not found" }));
                 return;
             }
-            
+
             // If user is creator, allow everything
             if (editorEmail === videoCreatorEmail) {
                 next();
                 return;
             }
-            
+
             // Check if editor has permission for this action via team_members
             const permissionCheck = await query(
                 `SELECT permissions FROM team_members 
                  WHERE creator_email = $1 AND editor_email = $2 AND status = 'active'`,
                 [videoCreatorEmail, editorEmail]
             );
-            
+
             if (permissionCheck.rows.length === 0) {
                 res.status(403).send(JSON.stringify({ error: "Not authorized - not in team" }));
                 return;
             }
-            
+
             // Check all roles for this permission
             let hasPermission = false;
             for (const row of permissionCheck.rows) {
@@ -367,14 +389,14 @@ export const checkPermission = (action: keyof typeof ROLE_PERMISSIONS['video_edi
                     break;
                 }
             }
-            
+
             if (!hasPermission) {
-                res.status(403).send(JSON.stringify({ 
-                    error: `Not authorized - missing permission: ${action}` 
+                res.status(403).send(JSON.stringify({
+                    error: `Not authorized - missing permission: ${action}`
                 }));
                 return;
             }
-            
+
             next();
         } catch (err) {
             console.error('Permission check error:', err);

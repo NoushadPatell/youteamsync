@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Loader2, Upload, Download, Trash2, Edit, Play, CheckCircle, UploadCloud
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-
+// (Keep all other existing imports)
 import { TaskAssignment } from "@/components/TaskAssignment";
 
 type videoInfoType = {
@@ -62,6 +62,14 @@ const STATUS_COLORS: { [key: string]: string } = {
     'published': 'bg-green-500'
 };
 
+type TaskAssignment = {
+    id: number;
+    editor_email: string;
+    role: string;
+    task_status: string;
+    notes: string;
+};
+
 export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmail }: {
     creatorEmail: string,
     editorEmail: string,
@@ -84,6 +92,9 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
     });
     const [uploadingVideo, setUploadingVideo] = useState(false);
     const [replacingVideo, setReplacingVideo] = useState(false);
+
+    const [assignments, setAssignments] = useState<TaskAssignment[]>([]);
+    const [loadingAssignments, setLoadingAssignments] = useState(true);
 
     const updateVideoInfoFunc = useCallback(async () => {
         try {
@@ -240,6 +251,54 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
         }
     }, [creatorEmail, dispatch, video, editorEmail]);
 
+    // Find replaceVideoFunc callback
+    // ADD THIS RIGHT AFTER IT:
+
+    const fetchAssignments = useCallback(async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/assignments/${video.id}`);
+            const data = await response.json();
+            setAssignments(data.assignments || []);
+        } catch (err) {
+            console.error('Error fetching assignments:', err);
+        } finally {
+            setLoadingAssignments(false);
+        }
+    }, [video.id]);
+
+    useEffect(() => {
+        if (userType === 'creator' || userType === 'editor') {
+            fetchAssignments();
+        }
+    }, [fetchAssignments, userType]);
+
+    const markMyTaskReady = useCallback(async () => {
+        if (!confirm("Mark your task as ready for creator review?")) return;
+
+        try {
+            const myAssignment = assignments.find(a => a.editor_email === editorEmail);
+            if (!myAssignment) {
+                alert("No assignment found for you");
+                return;
+            }
+
+            const response = await fetch(`http://localhost:5000/api/assignments/${myAssignment.id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'completed' })
+            });
+
+            if (!response.ok) throw new Error('Failed to update task');
+
+            alert("Task marked as ready!");
+            fetchAssignments();
+
+        } catch (e) {
+            console.error(e);
+            alert("Error: " + (e as Error).message);
+        }
+    }, [assignments, editorEmail, fetchAssignments]);
+
     const deleteVideoFunc = useCallback(async () => {
         if (!confirm("Are you sure you want to delete this video?")) return;
 
@@ -364,11 +423,14 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
         window.open(url, '_blank');
     }, [creatorEmail, video.id, userType, editorEmail]);
 
+    const myAssignment = assignments.find(a => a.editor_email === editorEmail);
+    const canMarkMyTaskReady = userType === 'editor' && myAssignment && myAssignment.task_status !== 'completed';
+    const allTasksCompleted = assignments.length > 0 && assignments.every(a => a.task_status === 'completed');
+
     const canEdit = userType === 'creator' || (userType === 'editor' && video.status !== 'published');
-    const canApprove = userType === 'creator' && video.status === 'review';
+    const canApprove = userType === 'creator' && allTasksCompleted && video.status !== 'approved';
     const canPublish = userType === 'creator' && video.status === 'approved' && !video.youtubeId;
     const canReplace = userType === 'editor' && video.status !== 'published';
-    const canMarkReady = userType === 'editor' && (video.status === 'draft' || video.status === 'editing');
 
     return (
         <>
@@ -458,11 +520,7 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                             <Label htmlFor="thumbnail" className="text-right">Thumbnail:</Label>
                             {video.thumbNailUrl && (
                                 <Button variant="link" className="col-span-1">
-                                    <a
-                                        href={`http://localhost:5000/api/thumbnail/${video.thumbNailUrl}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
+                                    <a href={`http://localhost:5000/api/thumbnail/${video.thumbNailUrl}`} target="_blank" rel="noopener noreferrer">
                                         View Current
                                     </a>
                                 </Button>
@@ -597,6 +655,32 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                             ))}
                         </div>
                     )}
+
+                    {assignments.length > 0 && (
+                        <div className="mt-2">
+                            <p className="text-xs font-semibold text-gray-700 mb-1">Tasks:</p>
+                            <div className="flex flex-wrap gap-1">
+                                {assignments.map((assignment) => (
+                                    <div
+                                        key={assignment.id}
+                                        className="text-xs px-2 py-1 rounded border"
+                                        style={{
+                                            backgroundColor:
+                                                assignment.task_status === 'completed' ? '#dcfce7' :
+                                                    assignment.task_status === 'in_progress' ? '#dbeafe' : '#f3f4f6',
+                                            borderColor:
+                                                assignment.task_status === 'completed' ? '#22c55e' :
+                                                    assignment.task_status === 'in_progress' ? '#3b82f6' : '#9ca3af'
+                                        }}
+                                    >
+                                        {assignment.role.replace('_', ' ')}
+                                        ({assignment.editor_email.split('@')[0]})
+                                        {assignment.task_status === 'completed' && ' ✓'}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {userType === 'creator' && (
@@ -640,24 +724,26 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                     )}
 
                     {/* Mark as Ready Button (Editor Only) */}
-                    {canMarkReady && (
+                    {canMarkMyTaskReady && (
                         <Button
-                            title="Mark as Ready for Review"
-                            className="w-12 h-12 bg-green-600 hover:bg-green-700 text-white"
-                            onClick={markAsReady}
+                            title="Mark My Task as Ready"
+                            className="w-auto px-4 h-12 bg-green-600 hover:bg-green-700 text-white"
+                            onClick={markMyTaskReady}
                         >
-                            <CheckCircle className="w-5 h-5" />
+                            <CheckCircle className="w-5 h-5 mr-2" />
+                            Mark Ready
                         </Button>
                     )}
 
-                    {/* Approve Button (Creator Only, when status is 'review') */}
+                    {/* Approve All Tasks Button (Creator Only) */}
                     {canApprove && (
                         <Button
-                            title="Approve Changes"
-                            className="w-12 h-12 bg-purple-600 hover:bg-purple-700 text-white"
+                            title="Approve All Tasks"
+                            className="w-auto px-4 h-12 bg-purple-600 hover:bg-purple-700 text-white"
                             onClick={approveVideo}
                         >
-                            <CheckCircle className="w-5 h-5" />
+                            <CheckCircle className="w-5 h-5 mr-2" />
+                            Approve All
                         </Button>
                     )}
 

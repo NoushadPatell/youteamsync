@@ -335,42 +335,31 @@ router.post('/api/videos/upload', upload.single('file'), async (req, res) => {
 router.put('/api/videos/:creatorEmail/:videoId', async (req, res) => {
     try {
         const { creatorEmail, videoId } = req.params;
-        const { 
-            title, 
-            description, 
-            tags, 
-            category, 
-            privacyStatus, 
-            thumbNailPath, 
-            thumbNailUrl, 
-            status, 
-            editedBy,
-            editorEmail
+        const {
+            title, description, tags, category, privacyStatus,
+            thumbNailPath, thumbNailUrl, status, editedBy, editorEmail
         } = req.body;
-        
-        // Get video creator
+
         const videoResult = await query('SELECT creator_email FROM videos WHERE id = $1', [videoId]);
         if (videoResult.rows.length === 0) {
             res.status(404).send(JSON.stringify({ error: "Video not found" }));
             return;
         }
-        
+
         const videoCreatorEmail = videoResult.rows[0].creator_email;
-        
-        // If not creator, check if they have ANY permission for this video
+
         if (editorEmail && editorEmail !== videoCreatorEmail) {
             const permCheck = await query(
                 `SELECT permissions FROM team_members 
                  WHERE creator_email = $1 AND editor_email = $2 AND status = 'active'`,
                 [videoCreatorEmail, editorEmail]
             );
-            
+
             if (permCheck.rows.length === 0) {
-                res.status(403).send(JSON.stringify({ error: "Not authorized - not in team" }));
+                res.status(403).send(JSON.stringify({ error: "Not authorized" }));
                 return;
             }
-            
-            // Check if they have metadata OR thumbnail permission
+
             let hasPermission = false;
             for (const row of permCheck.rows) {
                 const perms = row.permissions;
@@ -379,31 +368,22 @@ router.put('/api/videos/:creatorEmail/:videoId', async (req, res) => {
                     break;
                 }
             }
-            
+
             if (!hasPermission) {
-                res.status(403).send(JSON.stringify({ 
-                    error: "Not authorized - need metadata or thumbnail permission" 
-                }));
+                res.status(403).send(JSON.stringify({ error: "Not authorized" }));
                 return;
             }
         }
-        
+
         await query(
-            `UPDATE videos SET 
-                title = $1, 
-                description = $2, 
-                tags = $3, 
-                category = $4, 
-                privacy_status = $5, 
-                thumbnail_path = $6, 
-                thumbnail_url = $7, 
-                status = $8, 
-                edited_by = $9, 
-                updated_at = NOW()
+            `UPDATE videos SET title = $1, description = $2, tags = $3, category = $4, 
+             privacy_status = $5, thumbnail_path = $6, thumbnail_url = $7, status = $8, 
+             edited_by = $9, updated_at = NOW()
              WHERE id = $10 AND creator_email = $11`,
-            [title, description, tags, category, privacyStatus, thumbNailPath, thumbNailUrl, status, editedBy, videoId, creatorEmail]
+            [title, description, tags, category, privacyStatus, thumbNailPath, thumbNailUrl,
+                status, editedBy, videoId, creatorEmail]
         );
-        
+
         res.status(200).send(JSON.stringify({ message: "Video updated successfully" }));
     } catch (err) {
         console.error('Error updating video:', err);
@@ -447,91 +427,139 @@ router.delete('/api/videos/:creatorEmail/:videoId', async (req, res) => {
 router.post('/api/videos/:creatorEmail/:videoId/publish', async (req: express.Request, res: express.Response) => {
     try {
         const { videoId, creatorEmail } = req.params;
-
+        
+        console.log('Publishing video:', { videoId, creatorEmail });
+        
+        // Get video details
         const videoResult = await query(
             'SELECT * FROM videos WHERE id = $1 AND creator_email = $2',
             [videoId, creatorEmail]
         );
-
+        
         if (videoResult.rows.length === 0) {
-            res.status(404).send(JSON.stringify({ error: "video not found" }));
+            console.error('Video not found');
+            res.status(404).send(JSON.stringify({error: "Video not found"}));
             return;
         }
-
+        
         const {
-            file_path: filepath,
-            title,
-            description,
-            tags,
+            file_path: filepath, 
+            title, 
+            description, 
+            tags, 
             category,
             privacy_status: privacyStatus,
             youtube_id: youtubeId
         } = videoResult.rows[0];
-
-        const tagsArray = tags ? tags.split(',').map((t: string) => t.trim()) : [];
-
+        
+        console.log('Video details:', { title, category, privacyStatus, youtubeId });
+        
+        // Get creator credentials
         const creatorResult = await query(
             'SELECT refresh_token FROM creators WHERE email = $1',
             [creatorEmail]
         );
-
+        
         if (creatorResult.rows.length === 0) {
-            res.status(404).send(JSON.stringify({ error: "creator not found" }));
+            console.error('Creator not found');
+            res.status(404).send(JSON.stringify({error: "Creator not found"}));
+            return;
+        }
+        
+        const { refresh_token } = creatorResult.rows[0];
+        
+        if (!refresh_token) {
+            console.error('No refresh token');
+            res.status(400).send(JSON.stringify({error: "No refresh token. Please login again."}));
             return;
         }
 
-        const { refresh_token } = creatorResult.rows[0];
-
+        console.log('Refreshing access token...');
+        
+        // Refresh the access token
         const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_url);
         oAuth2Client.setCredentials({
             refresh_token
-        })
-        const { credentials } = await oAuth2Client.refreshAccessToken();
+        });
+        
+        let credentials;
+        try {
+            const refreshResult = await oAuth2Client.refreshAccessToken();
+            credentials = refreshResult.credentials;
+            console.log('Token refreshed successfully');
+        } catch (tokenError) {
+            console.error('Token refresh error:', tokenError);
+            res.status(401).send(JSON.stringify({
+                error: "Failed to refresh token. Please re-authenticate with Google."
+            }));
+            return;
+        }
 
         await query(
             'UPDATE creators SET access_token = $1, refresh_token = $2 WHERE email = $3',
             [credentials.access_token, credentials.refresh_token, creatorEmail]
         );
-
-        const ytAuth = new google.auth.OAuth2({
-            credentials
-        })
-
+        
+        const ytAuth = new google.auth.OAuth2();
+        ytAuth.setCredentials(credentials);
+        
         let uploadedVideoId = youtubeId;
+        
+        // Upload to YouTube if not already uploaded
         if (!uploadedVideoId) {
-            uploadedVideoId = await uploadVideo(
-                title,
-                description,
-                tagsArray,
-                filepath,
-                ytAuth,
-                category,
-                privacyStatus
-            )
-        }
-
-        if (!youtubeId) {
+            console.log('Uploading to YouTube...');
+            
+            const tagsArray = tags ? tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+            
+            try {
+                uploadedVideoId = await uploadVideo(
+                    title, 
+                    description || '', 
+                    tagsArray, 
+                    filepath, 
+                    ytAuth,
+                    category || '22',
+                    privacyStatus || 'public'
+                );
+                console.log('YouTube upload successful:', uploadedVideoId);
+            } catch (uploadError) {
+                console.error('YouTube upload error:', uploadError);
+                res.status(500).send(JSON.stringify({
+                    error: "YouTube upload failed: " + (uploadError as Error).message
+                }));
+                return;
+            }
+            
             await query(
                 'UPDATE videos SET youtube_id = $1, status = $2 WHERE id = $3',
                 [uploadedVideoId, 'published', videoId]
             );
         }
-
-        const thumbnailResult = await query(
-            'SELECT thumbnail_path FROM videos WHERE id = $1',
-            [videoId]
-        );
-        const thumbNailPath = thumbnailResult.rows[0]?.thumbnail_path;
-
-        if (thumbNailPath) {
-            await uploadThumbnail(ytAuth, uploadedVideoId, thumbNailPath);
+        
+        // Handle thumbnail upload if path exists
+        const thumbnailPath = videoResult.rows[0]?.thumbnail_path;
+        
+        if (thumbnailPath && uploadedVideoId) {
+            console.log('Uploading thumbnail...');
+            try {
+                await uploadThumbnail(ytAuth, uploadedVideoId, thumbnailPath);
+                console.log('Thumbnail uploaded successfully');
+            } catch (thumbError) {
+                console.error('Thumbnail upload error:', thumbError);
+                // Don't fail the whole request if thumbnail fails
+            }
         }
 
-        res.status(200).send(JSON.stringify({ data: "video uploaded successfully", youtubeId: uploadedVideoId }));
-    }
-    catch (err) {
+        res.status(200).send(JSON.stringify({
+            data: "Video uploaded successfully to YouTube!",
+            youtubeId: uploadedVideoId
+        }));
+        
+    } catch (err) {
         console.error('Publish error:', err);
-        res.status(500).send(JSON.stringify({ error: (err as Error).message }));
+        res.status(500).send(JSON.stringify({
+            error: "Error publishing video: " + (err as Error).message
+        }));
     }
 });
 
@@ -845,11 +873,44 @@ router.post("/askTitleDescription", async (req, res) => {
     }
 })
 
+router.get('/api/thumbnail/:filename', async (req, res) => {
+    try {
+        const { filename } = req.params;
+        const fs = require('fs');
+        const path = require('path');
+
+        const thumbnailPath = path.join(__dirname, '../../uploads', filename);
+
+        if (!fs.existsSync(thumbnailPath)) {
+            res.status(404).send('Thumbnail not found');
+            return;
+        }
+
+        const ext = path.extname(filename).toLowerCase();
+        const contentTypes: { [key: string]: string } = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp'
+        };
+
+        res.setHeader('Content-Type', contentTypes[ext] || 'image/jpeg');
+
+        const fileStream = fs.createReadStream(thumbnailPath);
+        fileStream.pipe(res);
+
+    } catch (err) {
+        console.error('Error serving thumbnail:', err);
+        res.status(500).send('Error serving thumbnail');
+    }
+});
+
 
 router.get('/api/videos/editor/:editorEmail', async (req, res) => {
     try {
         const { editorEmail } = req.params;
-        
+
         const result = await query(
             `SELECT DISTINCT
                 v.*,
@@ -863,7 +924,7 @@ router.get('/api/videos/editor/:editorEmail', async (req, res) => {
              ORDER BY v.created_at DESC`,
             [editorEmail]
         );
-        
+
         const videos = result.rows.map(row => ({
             id: row.id,
             title: row.title,
@@ -887,7 +948,7 @@ router.get('/api/videos/editor/:editorEmail', async (req, res) => {
             assignedAt: row.assigned_at,
             taskNotes: row.notes
         }));
-        
+
         res.status(200).send(JSON.stringify(videos));
     } catch (err) {
         console.error('Error fetching editor videos:', err);
@@ -946,30 +1007,30 @@ router.get('/api/thumbnail/:filename', async (req, res) => {
         const { filename } = req.params;
         const fs = require('fs');
         const path = require('path');
-        
+
         // Construct full path to thumbnail
         const thumbnailPath = path.join(__dirname, '../../uploads', filename);
-        
+
         if (!fs.existsSync(thumbnailPath)) {
             res.status(404).send('Thumbnail not found');
             return;
         }
-        
+
         // Determine content type based on extension
         const ext = path.extname(filename).toLowerCase();
-        const contentTypes: {[key: string]: string} = {
+        const contentTypes: { [key: string]: string } = {
             '.jpg': 'image/jpeg',
             '.jpeg': 'image/jpeg',
             '.png': 'image/png',
             '.gif': 'image/gif',
             '.webp': 'image/webp'
         };
-        
+
         res.setHeader('Content-Type', contentTypes[ext] || 'image/jpeg');
-        
+
         const fileStream = fs.createReadStream(thumbnailPath);
         fileStream.pipe(res);
-        
+
     } catch (err) {
         console.error('Error serving thumbnail:', err);
         res.status(500).send('Error serving thumbnail');
