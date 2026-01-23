@@ -8,6 +8,9 @@ import {Toaster} from "@/components/ui/sonner.tsx";
 import {socket} from "@/utilities/socketConnection.ts";
 import { getCreatorData } from "@/utilities/api.ts";
 
+import { TeamManagement } from "@/components/TeamManagement";
+
+
 export const CreatorPage=()=>{
     const [loading,setLoading]=useState(true);
     const [email,setEmail]=useState("");
@@ -39,6 +42,7 @@ export const CreatorPage=()=>{
                     Vid Collab Studio
                 </div>
                 <MyEditor email={email} editor={editor} setEditor={setEditor}/>
+                <TeamManagement creatorEmail={email} />
                 <VideosPanel creatorEmail={email} editorEmail={editor} userType={"creator"}/>
                 <Toaster/>
 

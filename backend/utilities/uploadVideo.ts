@@ -1,36 +1,47 @@
 import fs from 'fs';
-import path from 'path';
 import {google} from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 
-export const uploadVideo = async (title: string, description: string, tags: string[], filepath: string, ytAuth: OAuth2Client):Promise<string> =>{
+export const uploadVideo = async (
+    title: string, 
+    description: string, 
+    tags: string[], 
+    filepath: string, 
+    ytAuth: OAuth2Client,
+    category: string = '22',
+    privacyStatus: string = 'public'
+): Promise<string> => {
     try {
-        let progress=0;
+        let progress = 0;
 
         const fileStats = fs.statSync(filepath);
         const size = fileStats.size;
 
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             const stream = fs.createReadStream(filepath);
-            stream.on("data",(chunk: any)=>{
+            stream.on("data", (chunk: any) => {
                 const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
-                progress+=buffer.length;
-                console.log("uploaded", (progress*100)/size );
+                progress += buffer.length;
+                const percentage = ((progress * 100) / size).toFixed(2);
+                console.log("Upload progress:", percentage + "%");
             })
+            
             const service = google.youtube('v3')
             service.videos.insert({
                 auth: ytAuth,
-                part: ['snippet','status'],
+                part: ['snippet', 'status'],
                 requestBody: {
                     snippet: {
                         title,
                         description,
                         tags,
+                        categoryId: category,
                         defaultLanguage: 'en',
                         defaultAudioLanguage: 'en'
                     },
                     status: {
-                        privacyStatus: "public"
+                        privacyStatus: privacyStatus as 'public' | 'private' | 'unlisted',
+                        selfDeclaredMadeForKids: false
                     },
                 },
                 media: {
@@ -38,26 +49,20 @@ export const uploadVideo = async (title: string, description: string, tags: stri
                 },
             }, async function (err, response) {
                 if (err) {
-                    console.log('The API returned an error: ' + err);
-                    reject("error in uploading video")
-
+                    console.log('YouTube API error:', err);
+                    reject("Error uploading video to YouTube")
                 } else {
-                    if (response) {
-                        console.log(response.data);
+                    if (response && response.data.id) {
+                        console.log('Video uploaded successfully. ID:', response.data.id);
                         resolve(response.data.id as string)
-                    }
-                    else {
-                        reject("error in getting uploaded video id")
+                    } else {
+                        reject("Could not get video ID from YouTube")
                     }
                 }
             });
         })
 
+    } catch (e) {
+        throw new Error("Error accessing video file: " + (e as Error).message);
     }
-    catch (e) {
-        throw "error in getting file size from local storage";
-    }
-
-
-
 }

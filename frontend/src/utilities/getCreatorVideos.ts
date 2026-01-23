@@ -1,17 +1,22 @@
 import { getCreatorVideos as apiGetCreatorVideos } from "@/utilities/api.ts";
 
-export type videoInfoType ={
-    filepath:string,
-    fileUrl:string,
-    id:string,
-    title:string,
-    description:string,
-    tags:string,
-    thumbNailUrl:string,
-    thumbNailPath:string,
-    rating:number,
-    editedBy:string,
-    youtubeId:string
+export type videoInfoType = {
+    filepath: string,
+    fileUrl: string,
+    id: string,
+    title: string,
+    description: string,
+    tags: string,
+    category: string,
+    privacyStatus: string,
+    thumbNailUrl: string,
+    thumbNailPath: string,
+    rating: number,
+    editedBy: string,
+    youtubeId: string,
+    status: string,
+    createdAt: string,
+    updatedAt: string
 }
 
 export const getCreatorVideos=async (creatorEmail:string)=>{

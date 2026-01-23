@@ -1,9 +1,9 @@
-import {useNavigate} from "react-router-dom";
-import {useCallback, useEffect, useState} from "react";
-import {HandleEditorLogin} from "@/utilities/HandleEditorLogin.ts";
-import {GetCookie, SetCookie} from "@/utilities/get_set_cookies.ts";
+import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { HandleEditorLogin } from "@/utilities/HandleEditorLogin.ts";
+import { GetCookie } from "@/utilities/get_set_cookies.ts";
 import { LuLoader2 } from "react-icons/lu";
-import {Button} from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button.tsx";
 
 export const LoginPage = () => {
     const [ShowPage, setShowPage] = useState(false);
@@ -11,26 +11,22 @@ export const LoginPage = () => {
 
     const EditorLoginFunc = useCallback(() => {
         setShowPage(false);
-        HandleEditorLogin().then((res) => {
-            const email = res as string;
-            SetCookie(JSON.stringify({email,cookie:""}), 'editor');
-            navigate("/editor", {replace: true});
-
+        HandleEditorLogin().then(() => {
+            // Redirect handled in HandleEditorLogin
         }).catch((err) => {
-            alert(err.message)
+            alert(err.message);
             setShowPage(true);
-            console.log(err)
+            console.log(err);
         })
-
-    }, [navigate])
+    }, [])
     const CreatorSignUpFunc = useCallback(() => {
         setShowPage(false);
         fetch(`${import.meta.env.VITE_BACKEND}` + '/getAuthUrl').then((res) => {
             return res.json();
         }).then((output) => {
-            const {authorizeUrl}=output;
-            const a=document.createElement("a");
-            a.href=authorizeUrl;
+            const { authorizeUrl } = output;
+            const a = document.createElement("a");
+            a.href = authorizeUrl;
             a.click();
         }).catch(() => {
             alert("error occured. try again")
@@ -41,10 +37,10 @@ export const LoginPage = () => {
 
     useEffect(() => {
         if (GetCookie('creator')) {
-            navigate("/creator", {replace: true});
+            navigate("/creator", { replace: true });
         }
-        else if (GetCookie('editor')){
-            navigate("/editor", {replace: true});
+        else if (GetCookie('editor')) {
+            navigate("/editor", { replace: true });
         }
         else {
             setShowPage(true)
@@ -63,7 +59,7 @@ export const LoginPage = () => {
                 <div className={"flex gap-4"}>
 
                     <Button className={"bg-blue-600 font-bold"} onClick={CreatorSignUpFunc}>
-                       Creator
+                        Creator
                     </Button>
                     <Button className={"font-bold bg-emerald-400"} onClick={EditorLoginFunc}>
                         Editor
@@ -73,7 +69,7 @@ export const LoginPage = () => {
             </div>
 
         </> :
-            <LuLoader2 className={"animate-spin"} size={50}/>
+            <LuLoader2 className={"animate-spin"} size={50} />
         }
 
     </div>

@@ -6,6 +6,7 @@ import {Server} from "socket.io"
 import http from "http";
 import {router} from "./utilities/routes";
 import { query } from "./utilities/database";
+import { teamRouter } from "./utilities/teamRoutes";
 const app = express();
 
 const FRONTEND_ORIGIN = process.env.VITE_WEBSITE || 'http://localhost:5173';
@@ -13,8 +14,8 @@ const FRONTEND_ORIGIN = process.env.VITE_WEBSITE || 'http://localhost:5173';
 
 // Add COOP policy headers to allow Firebase popup
 app.use((_req, res, next) => {
-    res.header('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-    res.header('Cross-Origin-Embedder-Policy', 'require-corp');
+    res.header('Cross-Origin-Opener-Policy', 'unsafe-none');
+    res.header('Cross-Origin-Embedder-Policy', 'unsafe-none');
     next();
 });
 
@@ -74,6 +75,8 @@ app.use(express.json(),(_err:express.Errback,_req:express.Request,res:express.Re
 });
 
 app.use(router)
+
+app.use(teamRouter);
 
 const PORT = process.env.PORT || 5000;
 
