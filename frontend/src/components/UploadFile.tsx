@@ -6,6 +6,7 @@ import { SHA256 } from "crypto-js";
 import { videoInfoType } from "@/utilities/getCreatorVideos.ts";
 import { uploadVideo } from "@/utilities/api.ts";
 import { toast } from "sonner";
+import { Upload, Loader2 } from "lucide-react";
 
 export const UploadFile = memo(({ dispatch, creatorEmail, editorEmail, userType }: {
     creatorEmail: string,
@@ -29,16 +30,14 @@ export const UploadFile = memo(({ dispatch, creatorEmail, editorEmail, userType 
                 const uniqueId = SHA256(CurrDateTime + creatorEmail).toString();
                 const filepath = uniqueId + "." + fileExt;
 
-                // Simulate upload progress
                 setUploadProgress(50);
 
-                // Upload to backend
                 const newVideo = {
                     id: CurrDateTime,
                     title: filename,
                     description: "",
                     tags: "",
-                    category: "22", // Default: People & Blogs
+                    category: "22",
                     privacyStatus: "public",
                     thumbNailUrl: "",
                     filepath,
@@ -52,14 +51,12 @@ export const UploadFile = memo(({ dispatch, creatorEmail, editorEmail, userType 
                     updatedAt: new Date().toISOString()
                 };
 
-                // Create FormData for file upload
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('filename', filepath);
                 formData.append('creatorEmail', creatorEmail);
                 formData.append('videoData', JSON.stringify(newVideo));
 
-                // Upload file and metadata
                 const response = await fetch('http://localhost:5000/api/videos/upload', {
                     method: 'POST',
                     body: formData
@@ -82,7 +79,6 @@ export const UploadFile = memo(({ dispatch, creatorEmail, editorEmail, userType 
                 setUploadLoading(false);
                 setUploadProgress(0);
 
-                // Reset input
                 if (inputUploadRef.current) {
                     inputUploadRef.current.value = '';
                 }
@@ -120,12 +116,36 @@ export const UploadFile = memo(({ dispatch, creatorEmail, editorEmail, userType 
         <input type={"file"} ref={inputUploadRef} hidden={true} disabled={uploadLoading} accept={"video/*"} multiple={false} />
         <HoverCard>
             <HoverCardTrigger asChild>
-                <Button onClick={() => inputUploadRef.current?.click()}
-                    className={"w-32"}>{uploadLoading ? "Check Progress" : "Upload Video"}</Button>
+                <Button 
+                    onClick={() => inputUploadRef.current?.click()}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6"
+                    disabled={uploadLoading}
+                >
+                    {uploadLoading ? (
+                        <>
+                            <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                            Uploading...
+                        </>
+                    ) : (
+                        <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload Video
+                        </>
+                    )}
+                </Button>
             </HoverCardTrigger>
-            <HoverCardContent>
-                <Progress value={uploadProgress} className="w-full" />
-            </HoverCardContent>
+            {uploadLoading && (
+                <HoverCardContent className="rounded-xl p-4 min-w-[300px]">
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium text-gray-700">Upload Progress</span>
+                            <span className="font-bold text-blue-600">{uploadProgress}%</span>
+                        </div>
+                        <Progress value={uploadProgress} className="h-2" />
+                        <p className="text-xs text-gray-500">Please wait while your video is being uploaded...</p>
+                    </div>
+                </HoverCardContent>
+            )}
         </HoverCard>
     </>
 })

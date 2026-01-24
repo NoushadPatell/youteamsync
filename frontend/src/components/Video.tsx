@@ -7,7 +7,6 @@ import { Loader2, Upload, Download, Trash2, Edit, Play, CheckCircle, UploadCloud
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-// (Keep all other existing imports)
 import { TaskAssignment } from "@/components/TaskAssignment";
 
 type videoInfoType = {
@@ -54,12 +53,12 @@ const YOUTUBE_CATEGORIES = [
     { value: "28", label: "Science & Technology" }
 ];
 
-const STATUS_COLORS: { [key: string]: string } = {
-    'draft': 'bg-gray-500',
-    'editing': 'bg-blue-500',
-    'review': 'bg-yellow-500',
-    'approved': 'bg-purple-500',
-    'published': 'bg-green-500'
+const STATUS_CONFIG: { [key: string]: { bg: string, text: string, label: string } } = {
+    'draft': { bg: 'bg-gray-100', text: 'text-gray-700', label: 'DRAFT' },
+    'editing': { bg: 'bg-blue-100', text: 'text-blue-700', label: 'IN PROGRESS' },
+    'review': { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'IN REVIEW' },
+    'approved': { bg: 'bg-purple-100', text: 'text-purple-700', label: 'APPROVED' },
+    'published': { bg: 'bg-green-100', text: 'text-green-700', label: 'PUBLISHED' }
 };
 
 type TaskAssignment = {
@@ -68,6 +67,12 @@ type TaskAssignment = {
     role: string;
     task_status: string;
     notes: string;
+};
+
+const ROLE_ICONS: { [key: string]: string } = {
+    'video_editor': '🎬',
+    'thumbnail_designer': '🖼️',
+    'metadata_manager': '📝'
 };
 
 export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmail }: {
@@ -102,7 +107,6 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
             let thumbNailPath = video.thumbNailPath;
             let thumbnailUpdated = false;
 
-            // STEP 1: Handle thumbnail upload SEPARATELY
             if (thumbNailRef.current?.files?.[0]) {
                 const file = thumbNailRef.current.files[0];
                 const fileName = file.name;
@@ -135,7 +139,6 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                 thumbnailUpdated = true;
             }
 
-            // STEP 2: Determine what's being updated
             const metadataChanged =
                 videoInfo.title !== video.title ||
                 videoInfo.description !== video.description ||
@@ -143,7 +146,6 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                 videoInfo.category !== video.category ||
                 videoInfo.privacyStatus !== video.privacyStatus;
 
-            // STEP 3: Update metadata if changed (only if user has permission)
             if (metadataChanged || thumbnailUpdated) {
                 let newStatus = video.status;
                 if (userType === 'editor' && video.status === 'draft') {
@@ -211,12 +213,10 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
             const hash = btoa(currDateTime + creatorEmail).replace(/[^a-zA-Z0-9]/g, '');
             const filename = hash + "." + fileExt;
 
-            console.log('Replacing video:', { filename, fileSize: file.size });
-
             const formData = new FormData();
             formData.append('file', file);
             formData.append('filename', filename);
-            formData.append('editorEmail', editorEmail); // ADD THIS
+            formData.append('editorEmail', editorEmail);
 
             const response = await fetch(`http://localhost:5000/api/videos/${creatorEmail}/${video.id}/replace?editorEmail=${editorEmail}`, {
                 method: 'POST',
@@ -224,7 +224,6 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
             });
 
             const result = await response.json();
-            console.log('Replace response:', result);
 
             if (!response.ok) {
                 throw new Error(result.error || 'Replace failed');
@@ -250,9 +249,6 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
             setReplacingVideo(false);
         }
     }, [creatorEmail, dispatch, video, editorEmail]);
-
-    // Find replaceVideoFunc callback
-    // ADD THIS RIGHT AFTER IT:
 
     const fetchAssignments = useCallback(async () => {
         try {
@@ -341,7 +337,6 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
         if (!confirm("Mark this video as ready for creator review?")) return;
 
         try {
-            // First, update the video assignment task status to completed
             const assignmentResponse = await fetch(`http://localhost:5000/api/assignments/video/${video.id}/editor/${editorEmail}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -354,7 +349,6 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                 console.error('Failed to update assignment status');
             }
 
-            // Then update video metadata to mark as ready for review
             const response = await fetch(`http://localhost:5000/api/videos/${creatorEmail}/${video.id}?editorEmail=${editorEmail}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -432,62 +426,64 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
     const canPublish = userType === 'creator' && video.status === 'approved' && !video.youtubeId;
     const canReplace = userType === 'editor' && video.status !== 'published';
 
+    const statusConfig = STATUS_CONFIG[video.status] || STATUS_CONFIG['draft'];
+
     return (
         <>
             {/* Edit Metadata Dialog */}
             <Dialog>
                 <DialogTrigger ref={promptInfo} hidden />
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Video Metadata</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="text-2xl font-bold">Edit Video Metadata</DialogTitle>
+                        <DialogDescription className="text-gray-600">
                             {userType === 'editor'
                                 ? "Edit and optimize video details for YouTube"
                                 : "Review and edit video metadata"}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="title" className="text-right">Title:</Label>
+                    <div className="grid gap-6 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="title" className="font-semibold">Title</Label>
                             <Input
                                 id="title"
-                                className="col-span-3"
                                 placeholder="Enter video title"
                                 value={videoInfo.title}
                                 onChange={(e) => setVideoInfo({ ...videoInfo, title: e.target.value })}
                                 disabled={!canEdit}
+                                className="rounded-xl"
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-start gap-4">
-                            <Label htmlFor="description" className="text-right pt-2">Description:</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="description" className="font-semibold">Description</Label>
                             <Textarea
                                 id="description"
-                                className="col-span-3 resize-none min-h-[100px]"
+                                className="resize-none min-h-[120px] rounded-xl"
                                 placeholder="Enter video description"
                                 value={videoInfo.description}
                                 onChange={(e) => setVideoInfo({ ...videoInfo, description: e.target.value })}
                                 disabled={!canEdit}
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="tags" className="text-right">Tags:</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="tags" className="font-semibold">Tags</Label>
                             <Input
                                 id="tags"
-                                className="col-span-3"
                                 placeholder="gaming, tutorial, funny (comma separated)"
                                 value={videoInfo.tags}
                                 onChange={(e) => setVideoInfo({ ...videoInfo, tags: e.target.value })}
                                 disabled={!canEdit}
+                                className="rounded-xl"
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="category" className="text-right">Category:</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="category" className="font-semibold">Category</Label>
                             <Select
                                 value={videoInfo.category}
                                 onValueChange={(value) => setVideoInfo({ ...videoInfo, category: value })}
                                 disabled={!canEdit}
                             >
-                                <SelectTrigger className="col-span-3">
+                                <SelectTrigger className="rounded-xl">
                                     <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -499,14 +495,14 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="privacy" className="text-right">Privacy:</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="privacy" className="font-semibold">Privacy</Label>
                             <Select
                                 value={videoInfo.privacyStatus}
                                 onValueChange={(value) => setVideoInfo({ ...videoInfo, privacyStatus: value })}
                                 disabled={!canEdit}
                             >
-                                <SelectTrigger className="col-span-3">
+                                <SelectTrigger className="rounded-xl">
                                     <SelectValue placeholder="Select privacy" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -516,32 +512,34 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="thumbnail" className="text-right">Thumbnail:</Label>
-                            {video.thumbNailUrl && (
-                                <Button variant="link" className="col-span-1">
-                                    <a href={`http://localhost:5000/api/thumbnail/${video.thumbNailUrl}`} target="_blank" rel="noopener noreferrer">
-                                        View Current
-                                    </a>
-                                </Button>
-                            )}
-                            <Input
-                                id="thumbnail"
-                                type="file"
-                                className={video.thumbNailUrl ? "col-span-2" : "col-span-3"}
-                                accept="image/*"
-                                ref={thumbNailRef}
-                                disabled={!canEdit}
-                            />
+                        <div className="grid gap-2">
+                            <Label htmlFor="thumbnail" className="font-semibold">Thumbnail</Label>
+                            <div className="flex gap-2">
+                                {video.thumbNailUrl && (
+                                    <Button variant="outline" className="rounded-xl" size="sm">
+                                        <a href={`http://localhost:5000/api/thumbnail/${video.thumbNailUrl}`} target="_blank" rel="noopener noreferrer">
+                                            View Current
+                                        </a>
+                                    </Button>
+                                )}
+                                <Input
+                                    id="thumbnail"
+                                    type="file"
+                                    className="flex-grow rounded-xl"
+                                    accept="image/*"
+                                    ref={thumbNailRef}
+                                    disabled={!canEdit}
+                                />
+                            </div>
                         </div>
                     </div>
-                    <DialogFooter className="sm:justify-end">
+                    <DialogFooter className="gap-2">
                         <DialogClose asChild>
-                            <Button type="button" variant="outline">Cancel</Button>
+                            <Button type="button" variant="outline" className="rounded-xl">Cancel</Button>
                         </DialogClose>
                         {canEdit && (
                             <DialogClose asChild>
-                                <Button type="button" onClick={updateVideoInfoFunc}>
+                                <Button type="button" onClick={updateVideoInfoFunc} className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                                     Save Changes
                                 </Button>
                             </DialogClose>
@@ -553,15 +551,15 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
             {/* Stream Video Dialog */}
             <Dialog>
                 <DialogTrigger ref={streamDialog} hidden />
-                <DialogContent className="max-w-4xl">
+                <DialogContent className="max-w-4xl rounded-2xl">
                     <DialogHeader>
-                        <DialogTitle>Preview Video</DialogTitle>
+                        <DialogTitle className="text-2xl font-bold">Preview Video</DialogTitle>
                         <DialogDescription>Stream and preview your video</DialogDescription>
                     </DialogHeader>
                     <div className="w-full">
                         <video
                             controls
-                            className="w-full rounded-lg"
+                            className="w-full rounded-xl shadow-lg"
                             src={`http://localhost:5000/api/videos/${creatorEmail}/${video.id}/stream?editorEmail=${userType === 'editor' ? editorEmail : creatorEmail}`}
                         >
                             Your browser does not support video playback.
@@ -569,7 +567,7 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button type="button">Close</Button>
+                            <Button type="button" className="rounded-xl">Close</Button>
                         </DialogClose>
                     </DialogFooter>
                 </DialogContent>
@@ -578,33 +576,34 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
             {/* Replace Video Dialog */}
             <Dialog>
                 <DialogTrigger ref={replaceDialog} hidden />
-                <DialogContent>
+                <DialogContent className="rounded-2xl">
                     <DialogHeader>
-                        <DialogTitle>Upload Edited Version</DialogTitle>
+                        <DialogTitle className="text-2xl font-bold">Upload Edited Version</DialogTitle>
                         <DialogDescription>
                             Replace the current video with your edited version
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="videoFile" className="text-right">Video File:</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="videoFile" className="font-semibold">Video File</Label>
                             <Input
                                 id="videoFile"
                                 type="file"
-                                className="col-span-3"
+                                className="rounded-xl"
                                 accept="video/*"
                                 ref={videoFileRef}
                             />
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="gap-2">
                         <DialogClose asChild>
-                            <Button type="button" variant="outline">Cancel</Button>
+                            <Button type="button" variant="outline" className="rounded-xl">Cancel</Button>
                         </DialogClose>
                         <Button
                             type="button"
                             onClick={replaceVideoFunc}
                             disabled={replacingVideo}
+                            className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
                         >
                             {replacingVideo ? (
                                 <>
@@ -620,168 +619,210 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
             </Dialog>
 
             {/* Main Video Card */}
-            <div className="flex justify-between p-3 rounded-lg border-2 border-gray-200 hover:bg-gray-50 items-center gap-4 max-sm:flex-col transition-colors">
-                <div className="flex flex-col gap-2 flex-grow max-sm:self-start">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <Badge className={STATUS_COLORS[video.status]}>
-                            {video.status.toUpperCase()}
-                        </Badge>
-                        {video.editedBy && (
-                            <Badge variant="outline">Edited by: {video.editedBy}</Badge>
-                        )}
-                        {video.youtubeId && (
-                            <Badge variant="secondary">
-                                <a
-                                    href={`https://youtube.com/watch?v=${video.youtubeId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1"
-                                >
-                                    YouTube: {video.youtubeId}
-                                </a>
-                            </Badge>
-                        )}
-                    </div>
-                    <p className="font-semibold text-lg">{video.title}</p>
-                    {video.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">{video.description}</p>
-                    )}
-                    {video.tags && (
-                        <div className="flex gap-1 flex-wrap">
-                            {video.tags.split(',').slice(0, 5).map((tag, i) => (
-                                <span key={i} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                    #{tag.trim()}
-                                </span>
-                            ))}
+            <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300">
+                <div className="p-6">
+                    {/* Header Section */}
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                        <div className="flex-grow">
+                            <div className="flex items-center gap-2 flex-wrap mb-3">
+                                <Badge className={`${statusConfig.bg} ${statusConfig.text} border-0 font-semibold px-3 py-1`}>
+                                    {statusConfig.label}
+                                </Badge>
+                                {video.editedBy && (
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                        ✏️ Edited by: {video.editedBy.split('@')[0]}
+                                    </Badge>
+                                )}
+                                {video.youtubeId && (
+                                    <Badge className="bg-red-100 text-red-700 border-0">
+                                        <a
+                                            href={`https://youtube.com/watch?v=${video.youtubeId}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1"
+                                        >
+                                            📺 Watch on YouTube
+                                        </a>
+                                    </Badge>
+                                )}
+                            </div>
+                            <h3 className="font-bold text-xl text-gray-900 mb-2">{video.title}</h3>
+                            {video.description && (
+                                <p className="text-sm text-gray-600 line-clamp-2 mb-3">{video.description}</p>
+                            )}
+                            {video.tags && (
+                                <div className="flex gap-2 flex-wrap">
+                                    {video.tags.split(',').slice(0, 5).map((tag, i) => (
+                                        <span key={i} className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
+                                            #{tag.trim()}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
 
+                    {/* Task Assignments Section */}
                     {assignments.length > 0 && (
-                        <div className="mt-2">
-                            <p className="text-xs font-semibold text-gray-700 mb-1">Tasks:</p>
-                            <div className="flex flex-wrap gap-1">
+                        <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+                            <div className="flex items-center gap-2 mb-3">
+                                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                <h4 className="font-semibold text-gray-900">Task Assignments</h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                 {assignments.map((assignment) => (
                                     <div
                                         key={assignment.id}
-                                        className="text-xs px-2 py-1 rounded border"
-                                        style={{
-                                            backgroundColor:
-                                                assignment.task_status === 'completed' ? '#dcfce7' :
-                                                    assignment.task_status === 'in_progress' ? '#dbeafe' : '#f3f4f6',
-                                            borderColor:
-                                                assignment.task_status === 'completed' ? '#22c55e' :
-                                                    assignment.task_status === 'in_progress' ? '#3b82f6' : '#9ca3af'
-                                        }}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 ${
+                                            assignment.task_status === 'completed' 
+                                                ? 'bg-green-50 border-green-300' 
+                                                : 'bg-white border-gray-300'
+                                        }`}
                                     >
-                                        {assignment.role.replace('_', ' ')}
-                                        ({assignment.editor_email.split('@')[0]})
-                                        {assignment.task_status === 'completed' && ' ✓'}
+                                        <span className="text-lg">{ROLE_ICONS[assignment.role] || '📋'}</span>
+                                        <div className="flex-grow min-w-0">
+                                            <p className="text-xs font-semibold text-gray-900 truncate">
+                                                {assignment.editor_email.split('@')[0]}
+                                            </p>
+                                            <p className="text-xs text-gray-600">
+                                                {assignment.role.replace('_', ' ')}
+                                            </p>
+                                        </div>
+                                        {assignment.task_status === 'completed' && (
+                                            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                        )}
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
-                </div>
 
-                {userType === 'creator' && (
-                    <TaskAssignment videoId={video.id} creatorEmail={creatorEmail} />
-                )}
+                    {/* Action Buttons Section */}
+                    <div className="flex items-center justify-between gap-3 flex-wrap pt-4 border-t border-gray-200">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {/* Preview Button */}
+                            <Button
+                                title="Preview Video"
+                                className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                size="sm"
+                                onClick={() => streamDialog.current?.click()}
+                            >
+                                <Play className="w-4 h-4 mr-2" />
+                                Preview
+                            </Button>
 
-
-                <div className="flex items-center gap-2 max-sm:self-center flex-wrap">
-                    {/* Stream Button */}
-                    <Button
-                        title="Preview Video"
-                        className="w-12 h-12"
-                        variant="outline"
-                        onClick={() => streamDialog.current?.click()}
-                    >
-                        <Play className="w-5 h-5" />
-                    </Button>
-
-                    {/* Edit Metadata Button */}
-                    {canEdit && (
-                        <Button
-                            title="Edit Metadata"
-                            className="w-12 h-12"
-                            variant="outline"
-                            onClick={() => promptInfo.current?.click()}
-                        >
-                            <Edit className="w-5 h-5" />
-                        </Button>
-                    )}
-
-                    {/* Replace Video Button (Editor Only) */}
-                    {canReplace && (
-                        <Button
-                            title="Upload Edited Version"
-                            className="w-12 h-12"
-                            variant="outline"
-                            onClick={() => replaceDialog.current?.click()}
-                        >
-                            <UploadCloud className="w-5 h-5" />
-                        </Button>
-                    )}
-
-                    {/* Mark as Ready Button (Editor Only) */}
-                    {canMarkMyTaskReady && (
-                        <Button
-                            title="Mark My Task as Ready"
-                            className="w-auto px-4 h-12 bg-green-600 hover:bg-green-700 text-white"
-                            onClick={markMyTaskReady}
-                        >
-                            <CheckCircle className="w-5 h-5 mr-2" />
-                            Mark Ready
-                        </Button>
-                    )}
-
-                    {/* Approve All Tasks Button (Creator Only) */}
-                    {canApprove && (
-                        <Button
-                            title="Approve All Tasks"
-                            className="w-auto px-4 h-12 bg-purple-600 hover:bg-purple-700 text-white"
-                            onClick={approveVideo}
-                        >
-                            <CheckCircle className="w-5 h-5 mr-2" />
-                            Approve All
-                        </Button>
-                    )}
-
-                    {/* Publish to YouTube Button (Creator Only, after approval) */}
-                    {canPublish && (
-                        <Button
-                            title="Publish to YouTube"
-                            className="w-12 h-12 bg-red-600 hover:bg-red-700 text-white"
-                            disabled={uploadingVideo}
-                            onClick={publishToYoutube}
-                        >
-                            {uploadingVideo ? (
-                                <Loader2 className="animate-spin w-5 h-5 text-white" />
-                            ) : (
-                                <Upload className="w-5 h-5" />
+                            {/* Edit Button */}
+                            {canEdit && (
+                                <Button
+                                    title="Edit Metadata"
+                                    variant="outline"
+                                    className="rounded-xl"
+                                    size="sm"
+                                    onClick={() => promptInfo.current?.click()}
+                                >
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Edit
+                                </Button>
                             )}
-                        </Button>
-                    )}
 
-                    {/* Download Button */}
-                    <Button
-                        className="w-12 h-12"
-                        title="Download Video"
-                        onClick={downloadVideo}
-                    >
-                        <Download className="w-5 h-5" />
-                    </Button>
+                            {/* Download Button */}
+                            <Button
+                                title="Download Video"
+                                variant="outline"
+                                className="rounded-xl"
+                                size="sm"
+                                onClick={downloadVideo}
+                            >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                            </Button>
+                        </div>
 
-                    {/* Delete Button (Creator Only) */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {/* Replace Video (Editor Only) */}
+                            {canReplace && (
+                                <Button
+                                    title="Upload Edited Version"
+                                    className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                                    size="sm"
+                                    onClick={() => replaceDialog.current?.click()}
+                                >
+                                    <UploadCloud className="w-4 h-4 mr-2" />
+                                    Upload Edit
+                                </Button>
+                            )}
+
+                            {/* Mark Task Ready (Editor) */}
+                            {canMarkMyTaskReady && (
+                                <Button
+                                    title="Mark My Task as Ready"
+                                    className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                                    size="sm"
+                                    onClick={markMyTaskReady}
+                                >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Mark Ready
+                                </Button>
+                            )}
+
+                            {/* Approve (Creator) */}
+                            {canApprove && (
+                                <Button
+                                    title="Approve All Tasks"
+                                    className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                                    size="sm"
+                                    onClick={approveVideo}
+                                >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Approve All
+                                </Button>
+                            )}
+
+                            {/* Publish (Creator) */}
+                            {canPublish && (
+                                <Button
+                                    title="Publish to YouTube"
+                                    className="rounded-xl bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700"
+                                    size="sm"
+                                    disabled={uploadingVideo}
+                                    onClick={publishToYoutube}
+                                >
+                                    {uploadingVideo ? (
+                                        <>
+                                            <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                                            Publishing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload className="w-4 h-4 mr-2" />
+                                            Publish
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+
+                            {/* Delete (Creator Only) */}
+                            {userType === 'creator' && (
+                                <Button
+                                    variant="destructive"
+                                    onClick={deleteVideoFunc}
+                                    className="rounded-xl"
+                                    size="sm"
+                                    title="Delete Video"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Task Assignment Component */}
                     {userType === 'creator' && (
-                        <Button
-                            variant="destructive"
-                            onClick={deleteVideoFunc}
-                            className="w-12 h-12"
-                            title="Delete Video"
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </Button>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                            <TaskAssignment videoId={video.id} creatorEmail={creatorEmail} />
+                        </div>
                     )}
                 </div>
             </div>
