@@ -69,72 +69,81 @@ export const MyEditor=memo(({email,editor,setEditor}:{email:string,editor:string
         }
     },[email, newEditor, setEditor])
     
-    return <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
-        {/* Header with icon */}
-        <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md">
-                <User className="w-6 h-6 text-white" />
-            </div>
-            <div>
-                <h3 className="text-xl font-bold text-gray-900">My Editor</h3>
-                <p className="text-sm text-gray-500">Manage your primary editor</p>
+    return <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 h-full">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 border-b-2 border-emerald-200">
+            <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md">
+                    <User className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold text-gray-900">My Editor</h3>
+                    <p className="text-sm text-gray-600">Primary editor access</p>
+                </div>
             </div>
         </div>
 
         {/* Content */}
-        <div className="space-y-4">
+        <div className="p-6">
             {editor===""?
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                            <UserPlus className="w-5 h-5 mr-2" />
-                            Add Editor
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px] rounded-2xl">
-                        <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-300 text-center">
+                        <User className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-sm text-gray-600 font-medium">No primary editor assigned</p>
+                        <p className="text-xs text-gray-500 mt-1">Add an editor to get started</p>
+                    </div>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                                <UserPlus className="w-5 h-5 mr-2" />
                                 Add Primary Editor
-                            </DialogTitle>
-                            <p className="text-sm text-gray-500 mt-2">Grant editing permissions to a team member</p>
-                        </DialogHeader>
-                        <div className="py-6">
-                            <div className="space-y-3">
-                                <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
-                                    Editor Email Address
-                                </Label>
-                                <Input 
-                                    value={newEditor} 
-                                    onChange={(e)=>setNewEditor(e.target.value)}
-                                    placeholder="editor@example.com"
-                                    className="rounded-xl border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter className="gap-2">
-                            <Button 
-                                type='submit' 
-                                onClick={addEditorFunc}
-                                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 rounded-xl px-6"
-                            >
-                                <UserPlus className="w-4 h-4 mr-2" />
-                                Save Changes
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px] rounded-2xl">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                                    Add Primary Editor
+                                </DialogTitle>
+                                <p className="text-sm text-gray-500 mt-2">Grant primary editing permissions to a team member</p>
+                            </DialogHeader>
+                            <div className="py-6">
+                                <div className="space-y-3">
+                                    <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
+                                        Editor Email Address
+                                    </Label>
+                                    <Input 
+                                        value={newEditor} 
+                                        onChange={(e)=>setNewEditor(e.target.value)}
+                                        placeholder="editor@example.com"
+                                        className="rounded-xl border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                                    />
+                                </div>
+                            </div>
+                            <DialogFooter className="gap-2">
+                                <Button 
+                                    type='submit' 
+                                    onClick={addEditorFunc}
+                                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 rounded-xl px-6"
+                                >
+                                    <UserPlus className="w-4 h-4 mr-2" />
+                                    Add Editor
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             :
-                <>
+                <div className="space-y-4">
                     <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 border-2 border-emerald-200">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center shadow-md text-white font-bold text-lg">
+                        <div className="flex items-center gap-3">
+                            <div className="w-14 h-14 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center shadow-md text-white font-bold text-xl flex-shrink-0">
                                 {editor.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-grow min-w-0">
-                                <p className="text-xs text-gray-600 font-medium">Active Editor</p>
+                                <p className="text-xs text-emerald-700 font-semibold mb-1">PRIMARY EDITOR</p>
                                 <p className="text-base font-bold text-gray-900 truncate">{editor}</p>
                             </div>
-                            <div className="flex items-center gap-1.5 bg-green-100 px-3 py-1.5 rounded-full">
+                            <div className="flex items-center gap-1.5 bg-green-100 px-3 py-1.5 rounded-full flex-shrink-0">
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-xs font-semibold text-green-700">Active</span>
                             </div>
@@ -148,7 +157,7 @@ export const MyEditor=memo(({email,editor,setEditor}:{email:string,editor:string
                         <UserX className="w-5 h-5 mr-2" />
                         Revoke Access
                     </Button>
-                </>
+                </div>
             }
         </div>
     </div>

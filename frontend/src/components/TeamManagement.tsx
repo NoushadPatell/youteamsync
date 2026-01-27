@@ -141,185 +141,197 @@ export const TeamManagement = memo(({ creatorEmail }: { creatorEmail: string }) 
     }, {} as Record<string, TeamMember[]>);
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 h-full">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-                        <Users className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900">My Team</h2>
-                        <div className="flex items-center gap-2 mt-1">
-                            <Badge className="bg-blue-100 text-blue-700 border-0 text-xs">
-                                {Object.keys(groupedTeam).length} members
-                            </Badge>
-                            <Badge className="bg-purple-100 text-purple-700 border-0 text-xs">
-                                {team.length} roles
-                            </Badge>
+            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 px-6 py-4 border-b-2 border-blue-200">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+                            <Users className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900">My Team</h2>
+                            <div className="flex items-center gap-2 mt-1">
+                                <Badge className="bg-blue-100 text-blue-700 border-0 text-xs font-semibold">
+                                    {Object.keys(groupedTeam).length} members
+                                </Badge>
+                                <Badge className="bg-purple-100 text-purple-700 border-0 text-xs font-semibold">
+                                    {team.length} roles
+                                </Badge>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Add Member
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[550px] rounded-2xl">
-                        <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Add Team Member
-                            </DialogTitle>
-                            <p className="text-sm text-gray-500 mt-2">Invite a new member to collaborate on your videos</p>
-                        </DialogHeader>
-                        <div className="grid gap-6 py-4">
-                            <div className="grid gap-3">
-                                <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Editor Email</Label>
-                                <Input
-                                    id="email"
-                                    placeholder="editor@example.com"
-                                    value={newEditorEmail}
-                                    onChange={(e) => setNewEditorEmail(e.target.value)}
-                                    className="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                />
-                            </div>
-                            <div className="grid gap-3">
-                                <Label htmlFor="role" className="text-sm font-semibold text-gray-700">Select Role</Label>
-                                <Select value={newEditorRole} onValueChange={setNewEditorRole}>
-                                    <SelectTrigger className="rounded-xl border-gray-300">
-                                        <SelectValue placeholder="Choose a role" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-xl">
-                                        {Object.entries(ROLE_CONFIG).map(([key, config]) => {
-                                            const IconComponent = config.icon;
-                                            return (
-                                                <SelectItem key={key} value={key} className="rounded-lg">
-                                                    <div className="flex items-center gap-3 py-2">
-                                                        <div className={`w-10 h-10 ${config.bg} rounded-lg flex items-center justify-center`}>
-                                                            <IconComponent className={`w-5 h-5 ${config.text}`} />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="font-semibold text-gray-900">{ROLE_LABELS[key as keyof typeof ROLE_LABELS]}</span>
-                                                            <span className="text-xs text-gray-500">{ROLE_DESCRIPTIONS[key as keyof typeof ROLE_DESCRIPTIONS]}</span>
-                                                        </div>
-                                                    </div>
-                                                </SelectItem>
-                                            );
-                                        })}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <DialogFooter className="gap-2">
-                            <DialogClose asChild>
-                                <Button variant="outline" className="rounded-xl">Cancel</Button>
-                            </DialogClose>
-                            <Button 
-                                onClick={addTeamMember} 
-                                disabled={adding}
-                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl"
-                            >
-                                {adding ? "Adding..." : "Add Member"}
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Add Member
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[550px] rounded-2xl">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    Add Team Member
+                                </DialogTitle>
+                                <p className="text-sm text-gray-500 mt-2">Invite a new member to collaborate on your videos</p>
+                            </DialogHeader>
+                            <div className="grid gap-6 py-4">
+                                <div className="grid gap-3">
+                                    <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Editor Email</Label>
+                                    <Input
+                                        id="email"
+                                        placeholder="editor@example.com"
+                                        value={newEditorEmail}
+                                        onChange={(e) => setNewEditorEmail(e.target.value)}
+                                        className="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div className="grid gap-3">
+                                    <Label htmlFor="role" className="text-sm font-semibold text-gray-700">Select Role</Label>
+                                    <Select value={newEditorRole} onValueChange={setNewEditorRole}>
+                                        <SelectTrigger className="rounded-xl border-gray-300">
+                                            <SelectValue placeholder="Choose a role" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl">
+                                            {Object.entries(ROLE_CONFIG).map(([key, config]) => {
+                                                const IconComponent = config.icon;
+                                                return (
+                                                    <SelectItem key={key} value={key} className="rounded-lg">
+                                                        <div className="flex items-center gap-3 py-2">
+                                                            <div className={`w-10 h-10 ${config.bg} rounded-lg flex items-center justify-center`}>
+                                                                <IconComponent className={`w-5 h-5 ${config.text}`} />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-semibold text-gray-900">{ROLE_LABELS[key as keyof typeof ROLE_LABELS]}</span>
+                                                                <span className="text-xs text-gray-500">{ROLE_DESCRIPTIONS[key as keyof typeof ROLE_DESCRIPTIONS]}</span>
+                                                            </div>
+                                                        </div>
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <DialogFooter className="gap-2">
+                                <DialogClose asChild>
+                                    <Button variant="outline" className="rounded-xl">Cancel</Button>
+                                </DialogClose>
+                                <Button 
+                                    onClick={addTeamMember} 
+                                    disabled={adding}
+                                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl"
+                                >
+                                    {adding ? "Adding..." : "Add Member"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
             {/* Content */}
-            {loading ? (
-                <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
-                    <p className="mt-4 text-gray-600 font-medium">Loading team...</p>
-                </div>
-            ) : Object.keys(groupedTeam).length === 0 ? (
-                <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-dashed border-gray-300">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Users className="w-10 h-10 text-gray-400" />
+            <div className="p-6">
+                {loading ? (
+                    <div className="text-center py-12">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
+                        <p className="mt-4 text-gray-600 font-medium">Loading team...</p>
                     </div>
-                    <p className="text-gray-900 font-semibold text-lg">No team members yet</p>
-                    <p className="text-sm text-gray-500 mt-2">Start building your team to collaborate on videos</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {Object.entries(groupedTeam).map(([email, members]) => (
-                        <div key={email} className="border-2 border-gray-200 rounded-2xl p-5 bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-all duration-300">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
-                                    {email.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="flex-grow min-w-0">
-                                    <p className="font-bold text-gray-900 truncate">{email.split('@')[0]}</p>
-                                    <p className="text-sm text-gray-500 truncate">{email}</p>
-                                </div>
-                                {members[0].rating > 0 && (
-                                    <Badge className="bg-yellow-100 text-yellow-800 border-0">
-                                        ⭐ {(members[0].rating / (members[0].people || 1)).toFixed(1)}
-                                    </Badge>
-                                )}
-                            </div>
-                            
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {members.map((member) => {
-                                    const roleConfig = ROLE_CONFIG[member.role as keyof typeof ROLE_CONFIG];
-                                    const IconComponent = roleConfig.icon;
-                                    return (
-                                        <div
-                                            key={member.id}
-                                            className={`bg-white border-2 ${roleConfig.border} rounded-xl p-4 hover:shadow-md transition-all duration-200`}
-                                        >
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r ${roleConfig.gradient}`}>
-                                                    <IconComponent className="w-4 h-4 text-white" />
-                                                    <span className="text-xs font-bold text-white">{ROLE_LABELS[member.role as keyof typeof ROLE_LABELS]}</span>
-                                                </div>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    className="h-8 w-8 p-0 hover:bg-red-50 rounded-lg"
-                                                    onClick={() => removeTeamMember(member.editor_email, member.role)}
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                                </Button>
-                                            </div>
-                                            
-                                            <div className="space-y-1.5">
-                                                {member.permissions.canDownloadVideos && (
-                                                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                                                        <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                                                        <span>Download videos</span>
-                                                    </div>
-                                                )}
-                                                {member.permissions.canUploadEditedVideos && (
-                                                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                                                        <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                                                        <span>Upload edited videos</span>
-                                                    </div>
-                                                )}
-                                                {member.permissions.canEditMetadata && (
-                                                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                                                        <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                                                        <span>Edit metadata</span>
-                                                    </div>
-                                                )}
-                                                {member.permissions.canUploadThumbnails && (
-                                                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                                                        <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                                                        <span>Upload thumbnails</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                ) : Object.keys(groupedTeam).length === 0 ? (
+                    <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-dashed border-gray-300">
+                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Users className="w-10 h-10 text-gray-400" />
                         </div>
-                    ))}
-                </div>
-            )}
+                        <p className="text-gray-900 font-semibold text-lg">No team members yet</p>
+                        <p className="text-sm text-gray-500 mt-2">Start building your team to collaborate on videos</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {Object.entries(groupedTeam).map(([email, members]) => (
+                            <div key={email} className="border-2 border-gray-200 rounded-2xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+                                {/* Member Header */}
+                                <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-5 py-4 border-b-2 border-gray-200">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md flex-shrink-0">
+                                            {email.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="flex-grow min-w-0">
+                                            <p className="font-bold text-gray-900 truncate">{email.split('@')[0]}</p>
+                                            <p className="text-sm text-gray-500 truncate">{email}</p>
+                                        </div>
+                                        {members[0].rating > 0 && (
+                                            <Badge className="bg-yellow-100 text-yellow-800 border-0 flex-shrink-0">
+                                                ⭐ {(members[0].rating / (members[0].people || 1)).toFixed(1)}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Roles - Horizontal Layout */}
+                                <div className="p-5">
+                                    <div className="flex flex-wrap gap-3">
+                                        {members.map((member) => {
+                                            const roleConfig = ROLE_CONFIG[member.role as keyof typeof ROLE_CONFIG];
+                                            const IconComponent = roleConfig.icon;
+                                            return (
+                                                <div
+                                                    key={member.id}
+                                                    className={`flex items-center gap-3 ${roleConfig.border} border-2 rounded-xl px-4 py-3 bg-white hover:shadow-md transition-all duration-200 min-w-[280px]`}
+                                                >
+                                                    {/* Role Badge */}
+                                                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r ${roleConfig.gradient} flex-shrink-0`}>
+                                                        <IconComponent className="w-4 h-4 text-white" />
+                                                        <span className="text-xs font-bold text-white whitespace-nowrap">{ROLE_LABELS[member.role as keyof typeof ROLE_LABELS]}</span>
+                                                    </div>
+
+                                                    {/* Permissions */}
+                                                    <div className="flex flex-wrap gap-x-3 gap-y-1 flex-grow">
+                                                        {member.permissions.canDownloadVideos && (
+                                                            <div className="flex items-center gap-1 text-xs text-gray-600">
+                                                                <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                                                <span className="whitespace-nowrap">Download</span>
+                                                            </div>
+                                                        )}
+                                                        {member.permissions.canUploadEditedVideos && (
+                                                            <div className="flex items-center gap-1 text-xs text-gray-600">
+                                                                <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                                                <span className="whitespace-nowrap">Upload</span>
+                                                            </div>
+                                                        )}
+                                                        {member.permissions.canEditMetadata && (
+                                                            <div className="flex items-center gap-1 text-xs text-gray-600">
+                                                                <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                                                <span className="whitespace-nowrap">Edit Meta</span>
+                                                            </div>
+                                                        )}
+                                                        {member.permissions.canUploadThumbnails && (
+                                                            <div className="flex items-center gap-1 text-xs text-gray-600">
+                                                                <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                                                <span className="whitespace-nowrap">Thumbnails</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Delete Button */}
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="h-8 w-8 p-0 hover:bg-red-50 rounded-lg flex-shrink-0"
+                                                        onClick={() => removeTeamMember(member.editor_email, member.role)}
+                                                    >
+                                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                                    </Button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 });

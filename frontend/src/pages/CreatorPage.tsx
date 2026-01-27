@@ -38,7 +38,7 @@ export const CreatorPage=()=>{
     return !loading ?<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
         {/* Header with branding */}
         <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 border-b border-gray-200 shadow-sm">
-            <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -58,22 +58,24 @@ export const CreatorPage=()=>{
         </div>
 
         {/* Main content */}
-        <div className="max-w-7xl mx-auto px-6 py-8">
-            {/* Dashboard cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                {/* Editor Management Card */}
-                <div className="lg:col-span-1">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Dashboard cards - Fixed height alignment */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+                {/* Editor Management Card - Takes 1 column */}
+                <div className="xl:col-span-1">
                     <MyEditor email={email} editor={editor} setEditor={setEditor}/>
                 </div>
                 
-                {/* Team Management Card */}
-                <div className="lg:col-span-2">
+                {/* Team Management Card - Takes 2 columns */}
+                <div className="xl:col-span-2">
                     <TeamManagement creatorEmail={email} />
                 </div>
             </div>
 
-            {/* Videos Panel */}
-            <VideosPanel creatorEmail={email} editorEmail={editor} userType={"creator"}/>
+            {/* Videos Panel - Full width */}
+            <div className="w-full">
+                <VideosPanel creatorEmail={email} editorEmail={editor} userType={"creator"}/>
+            </div>
         </div>
 
         <Toaster/>

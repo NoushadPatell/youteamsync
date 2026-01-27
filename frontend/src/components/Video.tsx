@@ -3,7 +3,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload, Download, Trash2, Edit, Play, CheckCircle, UploadCloud } from "lucide-react";
+import { Loader2, Upload, Download, Trash2, Edit, Play, CheckCircle, UploadCloud, ChevronDown, ChevronRight } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +97,7 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
     });
     const [uploadingVideo, setUploadingVideo] = useState(false);
     const [replacingVideo, setReplacingVideo] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(video.status !== 'published');
 
     const [assignments, setAssignments] = useState<TaskAssignment[]>([]);
     const [loadingAssignments, setLoadingAssignments] = useState(true);
@@ -620,7 +621,56 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
 
             {/* Main Video Card */}
             <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="p-6">
+                {/* Collapsed Header - Always Visible */}
+                <div 
+                    className="p-5 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                >
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 flex-grow min-w-0">
+                            {/* Expand/Collapse Icon */}
+                            <div className="flex-shrink-0">
+                                {isExpanded ? (
+                                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                )}
+                            </div>
+
+                            {/* Status Badge */}
+                            <Badge className={`${statusConfig.bg} ${statusConfig.text} border-0 font-semibold px-3 py-1 flex-shrink-0`}>
+                                {statusConfig.label}
+                            </Badge>
+
+                            {/* Video Title */}
+                            <h3 className="font-bold text-lg text-gray-900 truncate">{video.title}</h3>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                className="rounded-lg"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    streamDialog.current?.click();
+                                }}
+                            >
+                                <Play className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Expanded Content */}
+                {isExpanded && (
+                    <div className="border-t-2 border-gray-200">
+                        <div className="p-6">
                     {/* Header Section */}
                     <div className="flex items-start justify-between gap-4 mb-4">
                         <div className="flex-grow">
@@ -824,7 +874,9 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                             <TaskAssignment videoId={video.id} creatorEmail={creatorEmail} />
                         </div>
                     )}
-                </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );

@@ -41,6 +41,7 @@ const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_u
 const scopes = [
     'https://www.googleapis.com/auth/youtube.upload',
     'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/youtube',
 ];
 
 // ============ OAUTH ROUTES ============
@@ -427,61 +428,61 @@ router.delete('/api/videos/:creatorEmail/:videoId', async (req, res) => {
 router.post('/api/videos/:creatorEmail/:videoId/publish', async (req: express.Request, res: express.Response) => {
     try {
         const { videoId, creatorEmail } = req.params;
-        
+
         console.log('Publishing video:', { videoId, creatorEmail });
-        
+
         // Get video details
         const videoResult = await query(
             'SELECT * FROM videos WHERE id = $1 AND creator_email = $2',
             [videoId, creatorEmail]
         );
-        
+
         if (videoResult.rows.length === 0) {
             console.error('Video not found');
-            res.status(404).send(JSON.stringify({error: "Video not found"}));
+            res.status(404).send(JSON.stringify({ error: "Video not found" }));
             return;
         }
-        
+
         const {
-            file_path: filepath, 
-            title, 
-            description, 
-            tags, 
+            file_path: filepath,
+            title,
+            description,
+            tags,
             category,
             privacy_status: privacyStatus,
             youtube_id: youtubeId
         } = videoResult.rows[0];
-        
+
         console.log('Video details:', { title, category, privacyStatus, youtubeId });
-        
+
         // Get creator credentials
         const creatorResult = await query(
             'SELECT refresh_token FROM creators WHERE email = $1',
             [creatorEmail]
         );
-        
+
         if (creatorResult.rows.length === 0) {
             console.error('Creator not found');
-            res.status(404).send(JSON.stringify({error: "Creator not found"}));
+            res.status(404).send(JSON.stringify({ error: "Creator not found" }));
             return;
         }
-        
+
         const { refresh_token } = creatorResult.rows[0];
-        
+
         if (!refresh_token) {
             console.error('No refresh token');
-            res.status(400).send(JSON.stringify({error: "No refresh token. Please login again."}));
+            res.status(400).send(JSON.stringify({ error: "No refresh token. Please login again." }));
             return;
         }
 
         console.log('Refreshing access token...');
-        
+
         // Refresh the access token
         const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_url);
         oAuth2Client.setCredentials({
             refresh_token
         });
-        
+
         let credentials;
         try {
             const refreshResult = await oAuth2Client.refreshAccessToken();
@@ -499,24 +500,24 @@ router.post('/api/videos/:creatorEmail/:videoId/publish', async (req: express.Re
             'UPDATE creators SET access_token = $1, refresh_token = $2 WHERE email = $3',
             [credentials.access_token, credentials.refresh_token, creatorEmail]
         );
-        
+
         const ytAuth = new google.auth.OAuth2();
         ytAuth.setCredentials(credentials);
-        
+
         let uploadedVideoId = youtubeId;
-        
+
         // Upload to YouTube if not already uploaded
         if (!uploadedVideoId) {
             console.log('Uploading to YouTube...');
-            
+
             const tagsArray = tags ? tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
-            
+
             try {
                 uploadedVideoId = await uploadVideo(
-                    title, 
-                    description || '', 
-                    tagsArray, 
-                    filepath, 
+                    title,
+                    description || '',
+                    tagsArray,
+                    filepath,
                     ytAuth,
                     category || '22',
                     privacyStatus || 'public'
@@ -529,32 +530,50 @@ router.post('/api/videos/:creatorEmail/:videoId/publish', async (req: express.Re
                 }));
                 return;
             }
-            
+
             await query(
                 'UPDATE videos SET youtube_id = $1, status = $2 WHERE id = $3',
                 [uploadedVideoId, 'published', videoId]
             );
         }
-        
+
         // Handle thumbnail upload if path exists
-        const thumbnailPath = videoResult.rows[0]?.thumbnail_path;
-        
+        console.log('Video row from DB:', videoResult.rows[0]);
+        console.log('Thumbnail path from DB:', videoResult.rows[0]?.thumbnail_path);
+
+        const thumbnailFilename = videoResult.rows[0]?.thumbnail_path;
+        let thumbnailPath = null;
+
+        if (thumbnailFilename) {
+            const path = require('path');
+            thumbnailPath = path.join(__dirname, '../../uploads', thumbnailFilename);
+            console.log('Constructed full thumbnail path:', thumbnailPath);
+        }
+
         if (thumbnailPath && uploadedVideoId) {
-            console.log('Uploading thumbnail...');
-            try {
-                await uploadThumbnail(ytAuth, uploadedVideoId, thumbnailPath);
-                console.log('Thumbnail uploaded successfully');
-            } catch (thumbError) {
-                console.error('Thumbnail upload error:', thumbError);
-                // Don't fail the whole request if thumbnail fails
+            console.log('Attempting thumbnail upload...');
+
+            const fs = require('fs');
+            if (!fs.existsSync(thumbnailPath)) {
+                console.error('Thumbnail file not found at path:', thumbnailPath);
+            } else {
+                try {
+                    const result = await uploadThumbnail(ytAuth, uploadedVideoId, thumbnailPath);
+                    console.log('Thumbnail uploaded successfully:', result);
+                } catch (thumbError) {
+                    console.error('Thumbnail upload failed:', thumbError);
+                    console.error('Video published but thumbnail failed. User can upload manually.');
+                }
             }
+        } else {
+            console.log('No thumbnail to upload or no video ID');
         }
 
         res.status(200).send(JSON.stringify({
             data: "Video uploaded successfully to YouTube!",
             youtubeId: uploadedVideoId
         }));
-        
+
     } catch (err) {
         console.error('Publish error:', err);
         res.status(500).send(JSON.stringify({
