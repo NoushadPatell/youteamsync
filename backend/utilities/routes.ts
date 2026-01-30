@@ -47,12 +47,13 @@ const scopes = [
 // ============ OAUTH ROUTES ============
 router.get('/getAuthUrl', (_req, res) => {
     const authorizeUrl = oAuth2Client.generateAuthUrl({
-        access_type: 'offline',
+        access_type: 'offline',           // ✅ Required for refresh token
         scope: scopes,
-        include_granted_scopes: true
+        include_granted_scopes: true,
+        prompt: 'consent'                 // ✅ ADD THIS - forces refresh token every time
     });
     res.send(JSON.stringify({ authorizeUrl }));
-})
+});
 
 router.post('/getEmail', async (req, res) => {
     try {
@@ -72,7 +73,18 @@ router.post('/getEmail', async (req, res) => {
         );
 
         const { tokens } = await tempOAuth2Client.getToken(code);
-        console.log('Tokens received');
+        console.log('Tokens received:', {
+            hasAccessToken: !!tokens.access_token,
+            hasRefreshToken: !!tokens.refresh_token,
+            scopes: tokens.scope
+        });
+
+        // ✅ CRITICAL: Verify we have refresh token
+        if (!tokens.refresh_token) {
+            console.error('⚠️ No refresh token received! User might need to revoke access and re-authorize');
+            // For first-time users, this is expected on subsequent logins
+            // We'll handle it below
+        }
 
         if (!(tokens.scope && tokens.scope.includes('https://www.googleapis.com/auth/userinfo.email'))) {
             res.status(400).send(JSON.stringify({ "error": "Email permissions not provided by the user. Try Again." }));
@@ -88,7 +100,6 @@ router.post('/getEmail', async (req, res) => {
         });
 
         console.log('Fetching user info...');
-
         const response = await userAuth.userinfo.get();
 
         if (!response || !response.data.email) {
@@ -99,25 +110,72 @@ router.post('/getEmail', async (req, res) => {
         const email = response.data.email;
         console.log('Email retrieved:', email);
 
-        res.status(200).send(JSON.stringify({ email }));
-
+        // ✅ FIX: Database operations BEFORE sending response
         try {
             const result = await query('SELECT * FROM creators WHERE email = $1', [email]);
+            
             if (result.rows.length === 0) {
+                // ✅ New user - must have refresh token
+                if (!refresh_token) {
+                    console.error('❌ New user but no refresh token!');
+                    res.status(500).send(JSON.stringify({ 
+                        error: "Authorization failed. Please try again." 
+                    }));
+                    return;
+                }
+
+                console.log('Creating new creator with refresh token');
                 await query(
                     'INSERT INTO creators (email, access_token, refresh_token, editor) VALUES ($1, $2, $3, $4)',
-                    [email, access_token, refresh_token || '', ""]
+                    [email, access_token, refresh_token, ""]
                 );
-                console.log('Creator inserted');
             } else {
+                // ✅ Existing user - update tokens
+                const existingRefreshToken = result.rows[0].refresh_token;
+                
+                // Use new refresh token if provided, otherwise keep existing
+                const tokenToStore = refresh_token || existingRefreshToken;
+                
+                if (!tokenToStore) {
+                    console.error('❌ No refresh token available for existing user!');
+                    res.status(500).send(JSON.stringify({ 
+                        error: "No valid refresh token. Please revoke access in Google settings and re-authorize." 
+                    }));
+                    return;
+                }
+
+                console.log('Updating existing creator, refresh token:', refresh_token ? 'NEW' : 'EXISTING');
                 await query(
                     'UPDATE creators SET access_token = $1, refresh_token = $2 WHERE email = $3',
-                    [access_token, refresh_token || '', email]
+                    [access_token, tokenToStore, email]
                 );
-                console.log('Creator updated');
             }
+
+            // ✅ Verify token was stored
+            const verification = await query(
+                'SELECT email, refresh_token FROM creators WHERE email = $1',
+                [email]
+            );
+            
+            if (verification.rows.length === 0 || !verification.rows[0].refresh_token) {
+                console.error('❌ Token verification failed!');
+                res.status(500).send(JSON.stringify({ 
+                    error: "Token storage failed. Please try again." 
+                }));
+                return;
+            }
+
+            console.log('✅ Token stored and verified successfully');
+            
+            // ✅ NOW send success response
+            res.status(200).send(JSON.stringify({ email }));
+
         } catch (dbErr) {
-            console.error('Database error (non-critical):', dbErr);
+            console.error('❌ Database error:', dbErr);
+            res.status(500).send(JSON.stringify({ 
+                error: "Database error during authentication" 
+            }));
+            return;
         }
 
     } catch (err) {
