@@ -20,12 +20,14 @@
     "firebase": "^10.6.0",
     "googleapis": "^129.0.0",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.13",
     "pg": "^8.11.3",
     "socket.io": "^4.7.3"
   },
   "devDependencies": {
     "@types/multer": "^2.0.0",
     "@types/node": "^25.0.9",
+    "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.15.6",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.2",

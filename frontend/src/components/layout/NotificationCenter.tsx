@@ -41,13 +41,13 @@ export const NotificationCenter = () => {
     const getNotificationColor = (type: string) => {
         switch (type) {
             case 'success':
-                return 'bg-green-50 border-green-200';
+                return 'bg-success-light border-success';
             case 'warning':
-                return 'bg-yellow-50 border-yellow-200';
+                return 'bg-warning-light border-warning';
             case 'error':
-                return 'bg-red-50 border-red-200';
+                return 'bg-error-light border-error';
             default:
-                return 'bg-blue-50 border-blue-200';
+                return 'bg-brand-pale border-brand-light';
         }
     };
 
@@ -99,11 +99,10 @@ export const NotificationCenter = () => {
                         notifications.map((notification) => (
                             <div
                                 key={notification.id}
-                                className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                                    notification.read
+                                className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${notification.read
                                         ? 'bg-white border-gray-200 opacity-60'
                                         : getNotificationColor(notification.type)
-                                } hover:shadow-md`}
+                                    } hover:shadow-md`}
                                 onClick={() => handleNotificationClick(notification)}
                             >
                                 <div className="flex items-start gap-3">

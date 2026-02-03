@@ -98,7 +98,7 @@ export const SettingsPage = () => {
             {/* Profile Section */}
             <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br rom-brand to-brand-light rounded-xl flex items-center justify-center">
                         <User className="w-6 h-6 text-white" />
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">Profile</h2>
@@ -127,7 +127,7 @@ export const SettingsPage = () => {
             {/* Notification Preferences */}
             <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-info to-info-dark rounded-xl flex items-center justify-center">
                         <Bell className="w-6 h-6 text-white" />
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">Notifications</h2>
@@ -155,7 +155,7 @@ export const SettingsPage = () => {
                                         [key]: e.target.checked
                                     }))}
                                 />
-                                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-light rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
                             </label>
                         </div>
                     ))}
@@ -163,7 +163,7 @@ export const SettingsPage = () => {
 
                 <Button 
                     onClick={saveNotificationPreferences}
-                    className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl"
+                    className="mt-4 bg-gradient-to-r rom-brand to-brand-light hover:from-blue-700 hover:to-purple-700 rounded-xl"
                 >
                     <Save className="w-4 h-4 mr-2" />
                     Save Preferences
@@ -173,7 +173,7 @@ export const SettingsPage = () => {
             {/* YouTube Connection */}
             <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-pink-600 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-error to-error-dark rounded-xl flex items-center justify-center">
                         <Youtube className="w-6 h-6 text-white" />
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">YouTube Connection</h2>

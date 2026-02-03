@@ -1,6 +1,8 @@
 import express, { Router, Request, Response, NextFunction } from "express";
 import { query } from "./database";
 
+import { sendEmail } from './emailService';
+
 export const teamRouter = Router(); // Changed from 'router' to 'teamRouter'
 
 // Permission definitions
@@ -182,13 +184,24 @@ teamRouter.post('/api/assignments/:videoId/assign', async (req, res) => {
             [videoId, creatorEmail, editorEmail, role, notes || '']
         );
 
-        res.status(201).send(JSON.stringify({
+        const videoResult = await query('SELECT title FROM videos WHERE id = $1', [videoId]);
+        const videoTitle = videoResult.rows[0]?.title || 'Untitled Video';
+
+        sendEmail('taskAssigned', {
+            editorEmail,
+            creatorEmail,
+            videoTitle,
+            role,
+            notes
+        });
+
+        res.status(201).json({
             message: "Task assigned successfully",
             assignment: result.rows[0]
-        }));
+        });
     } catch (err) {
         console.error('Error assigning task:', err);
-        res.status(500).send(JSON.stringify({ error: "Error assigning task" }));
+        res.status(500).json({ error: "Error assigning task" });
     }
 });
 

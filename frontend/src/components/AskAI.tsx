@@ -50,7 +50,7 @@ export const AskAI=memo(()=>{
     const [aiAnswer,setAiAnswer]=useState("");
     return <Sheet>
         <SheetTrigger asChild>
-            <Button className="bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
+            <Button className="bg-gradient-to-r from-brand to-brand-light hover:from-fuchsia-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI Features
             </Button>
@@ -58,11 +58,11 @@ export const AskAI=memo(()=>{
         <SheetContent className="overflow-auto sm:max-w-xl rounded-l-2xl">
             <SheetHeader className="mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-fuchsia-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 bg-gradient-to-br from-brand to-brand-light rounded-xl flex items-center justify-center shadow-lg">
                         <Wand2 className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
+                        <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-brand to-brand-light bg-clip-text text-transparent">
                             AI Content Assistant
                         </SheetTitle>
                         <p className="text-sm text-gray-500 mt-1">Generate optimized titles and descriptions</p>
@@ -71,7 +71,7 @@ export const AskAI=memo(()=>{
             </SheetHeader>
             
             <div className="space-y-4">
-                <div className="bg-gradient-to-br from-fuchsia-50 to-pink-50 rounded-xl p-4 border border-fuchsia-200">
+                <div className="bg-gradient-to-br rom-brand-pale to-brand-light/30 rounded-xl p-4 border border-brand-light">
                     <p className="text-sm text-gray-700 mb-3 font-medium">💡 How to use:</p>
                     <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
                         <li>Describe your video content briefly</li>
@@ -85,7 +85,7 @@ export const AskAI=memo(()=>{
                     <Input 
                         disabled={!allowQues} 
                         placeholder="E.g., Tutorial on React hooks for beginners..." 
-                        className="rounded-xl border-gray-300 focus:border-fuchsia-500 focus:ring-fuchsia-500" 
+                        className="rounded-xl border-gray-300 focus:border-brand focus:ring-fuchsia-500" 
                         value={inputQues} 
                         onChange={(e)=>setInputQues(e.target.value)}
                         onKeyDown={(e) => {
@@ -97,7 +97,7 @@ export const AskAI=memo(()=>{
                 </div>
                 
                 <Button 
-                    className="w-full bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 rounded-xl py-6 font-semibold shadow-md" 
+                    className="w-full bg-gradient-to-r from-brand to-brand-light hover:from-fuchsia-700 hover:to-pink-700 rounded-xl py-6 font-semibold shadow-md" 
                     onClick={askAnswer}
                     disabled={!allowQues || !inputQues.trim()}
                 >
@@ -117,7 +117,7 @@ export const AskAI=memo(()=>{
                 {aiAnswer && (
                     <div className="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm">
                         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
-                            <Sparkles className="w-5 h-5 text-fuchsia-600" />
+                            <Sparkles className="w-5 h-5 text-brand" />
                             <h3 className="font-bold text-gray-900">AI Generated Content</h3>
                         </div>
                         <div className="prose prose-sm max-w-none">

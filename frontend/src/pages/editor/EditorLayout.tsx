@@ -62,12 +62,12 @@ export const EditorLayout = () => {
 
     return (
         <NotificationProvider userEmail={email}>
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+            <div className="min-h-screen g-gradient-to-br from-neutral-50 via-brand-pale to-brand-light/20">
                 {/* Header */}
                 <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 border-b border-gray-200 shadow-sm">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
                         <div className="flex items-center justify-between">
-                            <Link to="/editor" className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            <Link to="/editor" className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-success via-brand to-brand-light shadow-lg hover:shadow-xl transition-shadow duration-300">
                                 <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
                                 </svg>
@@ -100,7 +100,7 @@ export const EditorLayout = () => {
                                         key={item.path}
                                         to={item.path}
                                         className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
-                                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
+                                                ? 'bg-gradient-to-r from-success to-brand text-white shadow-md'
                                                 : 'text-gray-700 hover:bg-gray-100'
                                             }`}
                                     >

@@ -37,9 +37,27 @@ const ROLE_DESCRIPTIONS = {
 };
 
 const ROLE_CONFIG = {
-    video_editor: { gradient: "from-blue-500 to-blue-700", bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", icon: Video },
-    thumbnail_designer: { gradient: "from-purple-500 to-purple-700", bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", icon: Image },
-    metadata_manager: { gradient: "from-green-500 to-green-700", bg: "bg-green-50", text: "text-green-700", border: "border-green-200", icon: FileText }
+    video_editor: {
+        gradient: "from-brand to-brand-dark",
+        bg: "bg-brand-pale",
+        text: "text-brand-dark",
+        border: "border-brand-light",
+        icon: Video
+    },
+    thumbnail_designer: {
+        gradient: "from-info to-info-dark",
+        bg: "bg-info-light",
+        text: "text-info-dark",
+        border: "border-info",
+        icon: Image
+    },
+    metadata_manager: {
+        gradient: "from-success to-success-dark",
+        bg: "bg-success-light",
+        text: "text-success-dark",
+        border: "border-success",
+        icon: FileText
+    }
 };
 
 export const TeamManagement = memo(({ creatorEmail }: { creatorEmail: string }) => {
@@ -143,10 +161,10 @@ export const TeamManagement = memo(({ creatorEmail }: { creatorEmail: string }) 
     return (
         <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 h-full">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 px-6 py-4 border-b-2 border-blue-200">
+            <div className="bg-gradient-to-r from-brand-pale via-brand-light/30 to-neutral-50 px-6 py-4 border-b-2 border-brand-light">
                 <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+                        <div className="w-12 h-12 bg-gradient-to-br from-brand to-brand-dark rounded-xl flex items-center justify-center shadow-md">
                             <Users className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -164,14 +182,14 @@ export const TeamManagement = memo(({ creatorEmail }: { creatorEmail: string }) 
 
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
+                            <Button className="bg-gradient-to-r from-brand to-brand-dark hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
                                 <UserPlus className="w-4 h-4 mr-2" />
                                 Add Member
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[550px] rounded-2xl">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-brand to-brand-dark bg-clip-text text-transparent">
                                     Add Team Member
                                 </DialogTitle>
                                 <p className="text-sm text-gray-500 mt-2">Invite a new member to collaborate on your videos</p>
@@ -218,10 +236,10 @@ export const TeamManagement = memo(({ creatorEmail }: { creatorEmail: string }) 
                                 <DialogClose asChild>
                                     <Button variant="outline" className="rounded-xl">Cancel</Button>
                                 </DialogClose>
-                                <Button 
-                                    onClick={addTeamMember} 
+                                <Button
+                                    onClick={addTeamMember}
                                     disabled={adding}
-                                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl"
+                                    className="bg-gradient-to-r from-brand to-brand-dark hover:from-blue-700 hover:to-purple-700 rounded-xl"
                                 >
                                     {adding ? "Adding..." : "Add Member"}
                                 </Button>
@@ -251,9 +269,9 @@ export const TeamManagement = memo(({ creatorEmail }: { creatorEmail: string }) 
                         {Object.entries(groupedTeam).map(([email, members]) => (
                             <div key={email} className="border-2 border-gray-200 rounded-2xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
                                 {/* Member Header */}
-                                <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-5 py-4 border-b-2 border-gray-200">
+                                <div className="bg-gradient-to-r from-brand-pale to-purple-50 px-5 py-4 border-b-2 border-gray-200">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md flex-shrink-0">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-brand to-brand-dark rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md flex-shrink-0">
                                             {email.charAt(0).toUpperCase()}
                                         </div>
                                         <div className="flex-grow min-w-0">

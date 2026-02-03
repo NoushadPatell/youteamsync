@@ -37,9 +37,9 @@ const STATUS_ICONS = {
 };
 
 const STATUS_COLORS = {
-    assigned: "bg-gray-500",
-    in_progress: "bg-blue-500",
-    completed: "bg-green-500"
+    assigned: "bg-warning",
+    in_progress: "bg-brand",
+    completed: "bg-success"
 };
 
 export const TaskAssignment = memo(({ 

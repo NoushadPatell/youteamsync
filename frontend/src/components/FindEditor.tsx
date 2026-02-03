@@ -41,10 +41,10 @@ export const FindEditor=memo(({creatorEmail}:{creatorEmail:string})=>{
     return <div className="mt-8">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-6 border-b border-amber-200">
+            <div className="bg-gradient-to-r from-brand-pale to-brand-light/30 p-6 border-b border-brand-light">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-amber-600 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <div className="w-12 h-12 bg-gradient-to-br from-brand to-brand-dark rounded-xl flex items-center justify-center shadow-lg">
                             <Award className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -52,7 +52,7 @@ export const FindEditor=memo(({creatorEmail}:{creatorEmail:string})=>{
                             <p className="text-sm text-gray-600 mt-1">Connect with top-rated video editors</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-amber-200 shadow-sm">
+                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-brand-light shadow-sm">
                         <TrendingUp className="w-4 h-4 text-amber-600" />
                         <span className="text-sm font-semibold text-gray-900">{editors.length} Available</span>
                     </div>
@@ -85,12 +85,12 @@ export const FindEditor=memo(({creatorEmail}:{creatorEmail:string})=>{
                                     key={editor.email}
                                     className={`relative bg-white rounded-xl border-2 p-5 hover:shadow-lg transition-all duration-300 ${
                                         isTopEditor 
-                                            ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50' 
+                                            ? 'border-amber-300 bg-gradient-to-br from-brand-pale to-brand-light/30' 
                                             : 'border-gray-200 hover:border-blue-300'
                                     }`}
                                 >
                                     {isTopEditor && (
-                                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-brand to-brand-dark rounded-full flex items-center justify-center shadow-lg">
                                             <Star className="w-4 h-4 text-white fill-current" />
                                         </div>
                                     )}
@@ -99,8 +99,8 @@ export const FindEditor=memo(({creatorEmail}:{creatorEmail:string})=>{
                                         <div className="flex items-center gap-3 flex-grow min-w-0">
                                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md ${
                                                 isTopEditor 
-                                                    ? 'bg-gradient-to-br from-amber-600 to-orange-600' 
-                                                    : 'bg-gradient-to-br from-blue-600 to-purple-600'
+                                                    ? 'bg-gradient-to-br from-brand to-brand-dark' 
+                                                    : 'bg-gradient-to-br from-brand to-brand-light'
                                             }`}>
                                                 {editor.email.charAt(0).toUpperCase()}
                                             </div>
@@ -118,7 +118,7 @@ export const FindEditor=memo(({creatorEmail}:{creatorEmail:string})=>{
                                     <div className="grid grid-cols-2 gap-3 mb-4">
                                         <div className="bg-white rounded-lg p-3 border border-gray-200">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <Star className="w-4 h-4 text-amber-500 fill-current" />
+                                                <Star className="w-4 h-4 text-brand fill-current" />
                                                 <span className="text-xs text-gray-600 font-medium">Rating</span>
                                             </div>
                                             <p className="text-lg font-bold text-gray-900">

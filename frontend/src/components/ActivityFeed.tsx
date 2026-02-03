@@ -38,7 +38,7 @@ export const ActivityFeed = ({ userEmail, userType }: { userEmail: string; userT
                         description: `"${video.title}" was uploaded`,
                         timestamp: createdAt,
                         icon: <Upload className="w-4 h-4" />,
-                        color: 'bg-blue-100 text-blue-700'
+                        color: 'bg-brand-pale text-brand-dark'
                     });
                 }
 
@@ -51,7 +51,7 @@ export const ActivityFeed = ({ userEmail, userType }: { userEmail: string; userT
                         description: `"${video.title}" is now live on YouTube`,
                         timestamp: updatedAt,
                         icon: <CheckCircle className="w-4 h-4" />,
-                        color: 'bg-green-100 text-green-700'
+                        color: 'bg-success-light text-success-dark'
                     });
                 }
             });

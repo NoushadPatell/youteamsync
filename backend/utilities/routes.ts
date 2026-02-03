@@ -8,6 +8,8 @@ import multer from 'multer';
 import { saveFile } from './fileStorage';
 import fs from 'fs';
 
+import { sendEmail } from './emailService';
+
 import { checkPermission } from './teamRoutes';
 
 export type videoInfoType = {
@@ -113,13 +115,13 @@ router.post('/getEmail', async (req, res) => {
         // ✅ FIX: Database operations BEFORE sending response
         try {
             const result = await query('SELECT * FROM creators WHERE email = $1', [email]);
-            
+
             if (result.rows.length === 0) {
                 // ✅ New user - must have refresh token
                 if (!refresh_token) {
                     console.error('❌ New user but no refresh token!');
-                    res.status(500).send(JSON.stringify({ 
-                        error: "Authorization failed. Please try again." 
+                    res.status(500).send(JSON.stringify({
+                        error: "Authorization failed. Please try again."
                     }));
                     return;
                 }
@@ -132,14 +134,14 @@ router.post('/getEmail', async (req, res) => {
             } else {
                 // ✅ Existing user - update tokens
                 const existingRefreshToken = result.rows[0].refresh_token;
-                
+
                 // Use new refresh token if provided, otherwise keep existing
                 const tokenToStore = refresh_token || existingRefreshToken;
-                
+
                 if (!tokenToStore) {
                     console.error('❌ No refresh token available for existing user!');
-                    res.status(500).send(JSON.stringify({ 
-                        error: "No valid refresh token. Please revoke access in Google settings and re-authorize." 
+                    res.status(500).send(JSON.stringify({
+                        error: "No valid refresh token. Please revoke access in Google settings and re-authorize."
                     }));
                     return;
                 }
@@ -156,24 +158,24 @@ router.post('/getEmail', async (req, res) => {
                 'SELECT email, refresh_token FROM creators WHERE email = $1',
                 [email]
             );
-            
+
             if (verification.rows.length === 0 || !verification.rows[0].refresh_token) {
                 console.error('❌ Token verification failed!');
-                res.status(500).send(JSON.stringify({ 
-                    error: "Token storage failed. Please try again." 
+                res.status(500).send(JSON.stringify({
+                    error: "Token storage failed. Please try again."
                 }));
                 return;
             }
 
             console.log('✅ Token stored and verified successfully');
-            
+
             // ✅ NOW send success response
             res.status(200).send(JSON.stringify({ email }));
 
         } catch (dbErr) {
             console.error('❌ Database error:', dbErr);
-            res.status(500).send(JSON.stringify({ 
-                error: "Database error during authentication" 
+            res.status(500).send(JSON.stringify({
+                error: "Database error during authentication"
             }));
             return;
         }
@@ -511,6 +513,23 @@ router.post('/api/videos/:creatorEmail/:videoId/publish', async (req: express.Re
             youtube_id: youtubeId
         } = videoResult.rows[0];
 
+        let enhancedDescription = description || '';
+        
+        if (tags) {
+            const tagsArray = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+            const hashtags = tagsArray
+                .slice(0, 15) // YouTube allows max 15 hashtags
+                .map((tag: string) => `#${tag.replace(/\s+/g, '')}`) // Remove spaces, add #
+                .join(' ');
+            
+            // Add hashtags at the end of description
+            if (hashtags) {
+                enhancedDescription = `${enhancedDescription}\n\n${hashtags}`;
+            }
+        }
+
+        console.log('Enhanced description with hashtags:', enhancedDescription);
+
         console.log('Video details:', { title, category, privacyStatus, youtubeId });
 
         // Get creator credentials
@@ -567,13 +586,27 @@ router.post('/api/videos/:creatorEmail/:videoId/publish', async (req: express.Re
         // Upload to YouTube if not already uploaded
         if (!uploadedVideoId) {
             console.log('Uploading to YouTube...');
+            sendEmail('videoPublished', {
+                creatorEmail,
+                videoTitle: title,
+                youtubeId: uploadedVideoId
+            });
 
+            // 🆕 SEND EMAIL to editor if exists
+            if (videoResult.rows[0].edited_by) {
+                sendEmail('videoPublished', {
+                    creatorEmail,
+                    editorEmail: videoResult.rows[0].edited_by,
+                    videoTitle: title,
+                    youtubeId: uploadedVideoId
+                });
+            }
             const tagsArray = tags ? tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
 
             try {
                 uploadedVideoId = await uploadVideo(
                     title,
-                    description || '',
+                    enhancedDescription,
                     tagsArray,
                     filepath,
                     ytAuth,

@@ -118,7 +118,7 @@ export const UploadFile = memo(({ dispatch, creatorEmail, editorEmail, userType 
             <HoverCardTrigger asChild>
                 <Button 
                     onClick={() => inputUploadRef.current?.click()}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6"
+                    className="bg-gradient-to-r from-brand to-brand-dark hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6"
                     disabled={uploadLoading}
                 >
                     {uploadLoading ? (
@@ -139,7 +139,7 @@ export const UploadFile = memo(({ dispatch, creatorEmail, editorEmail, userType 
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                             <span className="font-medium text-gray-700">Upload Progress</span>
-                            <span className="font-bold text-blue-600">{uploadProgress}%</span>
+                            <span className="font-bold text-brand">{uploadProgress}%</span>
                         </div>
                         <Progress value={uploadProgress} className="h-2" />
                         <p className="text-xs text-gray-500">Please wait while your video is being uploaded...</p>

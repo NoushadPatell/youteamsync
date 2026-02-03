@@ -71,9 +71,9 @@ export const MyEditor=memo(({email,editor,setEditor}:{email:string,editor:string
     
     return <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 h-full">
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 border-b-2 border-emerald-200">
+        <div className="bg-gradient-to-r from-success-light to-brand-pale px-6 py-4 border-b-2 border-success">
             <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 bg-gradient-to-br from-success to-brand rounded-xl flex items-center justify-center shadow-md">
                     <User className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -94,14 +94,14 @@ export const MyEditor=memo(({email,editor,setEditor}:{email:string,editor:string
                     </div>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                            <Button className="w-full bg-gradient-to-r from-success to-brand hover:from-success hover:to-teal-700 text-white font-semibold py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
                                 <UserPlus className="w-5 h-5 mr-2" />
                                 Add Primary Editor
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[500px] rounded-2xl">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-success-dark to-brand bg-clip-text text-transparent">
                                     Add Primary Editor
                                 </DialogTitle>
                                 <p className="text-sm text-gray-500 mt-2">Grant primary editing permissions to a team member</p>
@@ -123,7 +123,7 @@ export const MyEditor=memo(({email,editor,setEditor}:{email:string,editor:string
                                 <Button 
                                     type='submit' 
                                     onClick={addEditorFunc}
-                                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 rounded-xl px-6"
+                                    className="bg-gradient-to-r from-success to-brand hover:from-success hover:to-teal-700 rounded-xl px-6"
                                 >
                                     <UserPlus className="w-4 h-4 mr-2" />
                                     Add Editor
@@ -134,16 +134,16 @@ export const MyEditor=memo(({email,editor,setEditor}:{email:string,editor:string
                 </div>
             :
                 <div className="space-y-4">
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 border-2 border-emerald-200">
+                    <div className="bg-gradient-to-br from-success-light to-brand-pale rounded-xl p-5 border-2 border-success">
                         <div className="flex items-center gap-3">
-                            <div className="w-14 h-14 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center shadow-md text-white font-bold text-xl flex-shrink-0">
+                            <div className="w-14 h-14 bg-gradient-to-br from-success-dark to-brand rounded-full flex items-center justify-center shadow-md text-white font-bold text-xl flex-shrink-0">
                                 {editor.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-grow min-w-0">
-                                <p className="text-xs text-emerald-700 font-semibold mb-1">PRIMARY EDITOR</p>
+                                <p className="text-xs text-success-dark font-semibold mb-1">PRIMARY EDITOR</p>
                                 <p className="text-base font-bold text-gray-900 truncate">{editor}</p>
                             </div>
-                            <div className="flex items-center gap-1.5 bg-green-100 px-3 py-1.5 rounded-full flex-shrink-0">
+                            <div className="flex items-center gap-1.5 from-successbg-green-100 px-3 py-1.5 rounded-full flex-shrink-0">
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-xs font-semibold text-green-700">Active</span>
                             </div>

@@ -87,7 +87,7 @@ export const EditorDashboard = () => {
                     <p className="text-gray-600 mt-1">Here's what you're working on today.</p>
                 </div>
                 <Link to="/editor/tasks">
-                    <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
+                    <Button className="bg-gradient-to-r from-success to-brand hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
                         <CheckSquare className="w-4 h-4 mr-2" />
                         View All Tasks
                     </Button>
@@ -143,7 +143,7 @@ export const EditorDashboard = () => {
                         {urgentTasks.map((task) => (
                             <div 
                                 key={task.id}
-                                className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl hover:shadow-md transition-shadow"
+                                className="flex items-center justify-between p-4 bg-gradient-to-r from-warning-light to-error-light border-2 border-warning rounded-xl hover:shadow-md transition-shadow"
                             >
                                 <div className="flex-grow">
                                     <h3 className="font-semibold text-gray-900">{task.title}</h3>
@@ -154,8 +154,8 @@ export const EditorDashboard = () => {
                                 <div className="flex items-center gap-3">
                                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                                         task.taskStatus === 'assigned' 
-                                            ? 'bg-yellow-100 text-yellow-700'
-                                            : 'bg-blue-100 text-blue-700'
+                                            ? 'bg-warning-light text-warning-dark'
+                                            : 'bg-brand-pale text-brand-dark'
                                     }`}>
                                         {task.taskStatus.replace('_', ' ').toUpperCase()}
                                     </span>
@@ -207,7 +207,7 @@ export const EditorDashboard = () => {
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No tasks yet</h3>
                     <p className="text-gray-600 mb-6">Check your creator requests or wait for new assignments</p>
                     <Link to="/editor/requests">
-                        <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
+                        <Button className="bg-gradient-to-r from-success to-brand hover:from-emerald-700 hover:to-teal-700">
                             View Creator Requests
                         </Button>
                     </Link>

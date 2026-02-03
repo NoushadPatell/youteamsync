@@ -5,27 +5,14 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { WrongPage } from "./pages/WrongPage.tsx";
 import { LoginPage } from "./pages/LoginPage.tsx";
 import { Oauth2callback } from "./pages/Oauth2callback.tsx";
-
-// // Creator imports
-// import { CreatorLayout } from "@/pages/creator/CreatorLayout.tsx";
-// import { CreatorDashboard } from "@/pages/creator/CreatorDashboard.tsx";
-// import { VideosLibrary } from "@/pages/creator/VideosLibrary.tsx";
-// import { TeamPage } from "@/pages/creator/TeamPage.tsx";
-// import { EditorMarketplace } from "@/pages/creator/EditorMarketplace.tsx";
-
-// 🆕 Editor imports
-// import { EditorLayout } from "@/pages/editor/EditorLayout.tsx";
-// import { EditorDashboard } from "@/pages/editor/EditorDashboard.tsx";
-// import { MyTasks } from "@/pages/editor/MyTasks.tsx";
-// import { CreatorRequests } from "@/pages/editor/CreatorRequests.tsx";
+import { AnalyticsPage } from "@/pages/creator/AnalyticsPage";
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-// import { SettingsPage as CreatorSettings } from "@/pages/creator/SettingsPage";
-// import { SettingsPage as EditorSettings } from "@/pages/editor/SettingsPage";
-
 import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+
+
 
 const CreatorLayout = lazy(() => import("./pages/creator/CreatorLayout.tsx").then(m => ({ default: m.CreatorLayout })));
 const CreatorDashboard = lazy(() => import("./pages/creator/CreatorDashboard.tsx").then(m => ({ default: m.CreatorDashboard })));
@@ -64,6 +51,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                         <Route path="videos" element={<VideosLibrary />} />
                         <Route path="team" element={<TeamPage />} />
                         <Route path="marketplace" element={<EditorMarketplace />} />
+                        <Route path="analytics" element={<AnalyticsPage />} />
                         <Route path="settings" element={<CreatorSettings />} />
                     </Route>
 

@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { TaskAssignment } from "@/components/TaskAssignment";
 
+import { VideoComments } from '@/components/VideoComments';
+
 type videoInfoType = {
     filepath: string,
     fileUrl: string,
@@ -54,11 +56,31 @@ const YOUTUBE_CATEGORIES = [
 ];
 
 const STATUS_CONFIG: { [key: string]: { bg: string, text: string, label: string } } = {
-    'draft': { bg: 'bg-gray-100', text: 'text-gray-700', label: 'DRAFT' },
-    'editing': { bg: 'bg-blue-100', text: 'text-blue-700', label: 'IN PROGRESS' },
-    'review': { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'IN REVIEW' },
-    'approved': { bg: 'bg-purple-100', text: 'text-purple-700', label: 'APPROVED' },
-    'published': { bg: 'bg-green-100', text: 'text-green-700', label: 'PUBLISHED' }
+    'draft': {
+        bg: 'bg-neutral-100',
+        text: 'text-neutral-700',
+        label: 'DRAFT'
+    },
+    'editing': {
+        bg: 'bg-brand-pale',
+        text: 'text-brand-dark',
+        label: 'IN PROGRESS'
+    },
+    'review': {
+        bg: 'bg-warning-light',
+        text: 'text-warning-dark',
+        label: 'IN REVIEW'
+    },
+    'approved': {
+        bg: 'bg-info-light',
+        text: 'text-info-dark',
+        label: 'APPROVED'
+    },
+    'published': {
+        bg: 'bg-success-light',
+        text: 'text-success-dark',
+        label: 'PUBLISHED'
+    }
 };
 
 type TaskAssignment = {
@@ -604,7 +626,7 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                             type="button"
                             onClick={replaceVideoFunc}
                             disabled={replacingVideo}
-                            className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                            className="rounded-xl bg-gradient-to-r from-success to-brand hover:from-emerald-700 hover:to-teal-700"
                         >
                             {replacingVideo ? (
                                 <>
@@ -620,9 +642,9 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
             </Dialog>
 
             {/* Main Video Card */}
-            <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300">
+            <div className="bg-neutral-50 rounded-2xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300">
                 {/* Collapsed Header - Always Visible */}
-                <div 
+                <div
                     className="p-5 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
                     onClick={() => setIsExpanded(!isExpanded)}
                 >
@@ -671,209 +693,215 @@ export const Video = memo(({ video, dispatch, creatorEmail, userType, editorEmai
                 {isExpanded && (
                     <div className="border-t-2 border-gray-200">
                         <div className="p-6">
-                    {/* Header Section */}
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                        <div className="flex-grow">
-                            <div className="flex items-center gap-2 flex-wrap mb-3">
-                                <Badge className={`${statusConfig.bg} ${statusConfig.text} border-0 font-semibold px-3 py-1`}>
-                                    {statusConfig.label}
-                                </Badge>
-                                {video.editedBy && (
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                        ✏️ Edited by: {video.editedBy.split('@')[0]}
-                                    </Badge>
-                                )}
-                                {video.youtubeId && (
-                                    <Badge className="bg-red-100 text-red-700 border-0">
-                                        <a
-                                            href={`https://youtube.com/watch?v=${video.youtubeId}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-1"
-                                        >
-                                            📺 Watch on YouTube
-                                        </a>
-                                    </Badge>
-                                )}
-                            </div>
-                            <h3 className="font-bold text-xl text-gray-900 mb-2">{video.title}</h3>
-                            {video.description && (
-                                <p className="text-sm text-gray-600 line-clamp-2 mb-3">{video.description}</p>
-                            )}
-                            {video.tags && (
-                                <div className="flex gap-2 flex-wrap">
-                                    {video.tags.split(',').slice(0, 5).map((tag, i) => (
-                                        <span key={i} className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
-                                            #{tag.trim()}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                            {/* Header Section */}
+                            <div className="flex items-start justify-between gap-4 mb-4">
+                                <div className="flex-grow">
+                                    <div className="flex items-center gap-2 flex-wrap mb-3">
+                                        {/* <Badge className={`${statusConfig.bg} ${statusConfig.text} border-0 font-semibold px-3 py-1`}>
+                                            {statusConfig.label}
+                                        </Badge> */}
+                                        {/* {video.editedBy && (
+                                            <Badge variant="outline" className="bg-brand-pale text-brand-dark border-brand-light">
+                                                ✏️ Edited by: {video.editedBy.split('@')[0]}
+                                            </Badge>
+                                        )} */}
+                                        {video.youtubeId && (
+                                            <Badge className="bg-brand-light text-brand-dark border-0 hover:bg-brand">
+                                                <a
+                                                    href={`https://youtube.com/watch?v=${video.youtubeId}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-1"
+                                                >
+                                                    Watch on YouTube
+                                                </a>
+                                            </Badge>
 
-                    {/* Task Assignments Section */}
-                    {assignments.length > 0 && (
-                        <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
-                            <div className="flex items-center gap-2 mb-3">
-                                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                                <h4 className="font-semibold text-gray-900">Task Assignments</h4>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {assignments.map((assignment) => (
-                                    <div
-                                        key={assignment.id}
-                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 ${
-                                            assignment.task_status === 'completed' 
-                                                ? 'bg-green-50 border-green-300' 
-                                                : 'bg-white border-gray-300'
-                                        }`}
-                                    >
-                                        <span className="text-lg">{ROLE_ICONS[assignment.role] || '📋'}</span>
-                                        <div className="flex-grow min-w-0">
-                                            <p className="text-xs font-semibold text-gray-900 truncate">
-                                                {assignment.editor_email.split('@')[0]}
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                                {assignment.role.replace('_', ' ')}
-                                            </p>
-                                        </div>
-                                        {assignment.task_status === 'completed' && (
-                                            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
                                         )}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Action Buttons Section */}
-                    <div className="flex items-center justify-between gap-3 flex-wrap pt-4 border-t border-gray-200">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            {/* Preview Button */}
-                            <Button
-                                title="Preview Video"
-                                className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                                size="sm"
-                                onClick={() => streamDialog.current?.click()}
-                            >
-                                <Play className="w-4 h-4 mr-2" />
-                                Preview
-                            </Button>
-
-                            {/* Edit Button */}
-                            {canEdit && (
-                                <Button
-                                    title="Edit Metadata"
-                                    variant="outline"
-                                    className="rounded-xl"
-                                    size="sm"
-                                    onClick={() => promptInfo.current?.click()}
-                                >
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Edit
-                                </Button>
-                            )}
-
-                            {/* Download Button */}
-                            <Button
-                                title="Download Video"
-                                variant="outline"
-                                className="rounded-xl"
-                                size="sm"
-                                onClick={downloadVideo}
-                            >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download
-                            </Button>
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-wrap">
-                            {/* Replace Video (Editor Only) */}
-                            {canReplace && (
-                                <Button
-                                    title="Upload Edited Version"
-                                    className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
-                                    size="sm"
-                                    onClick={() => replaceDialog.current?.click()}
-                                >
-                                    <UploadCloud className="w-4 h-4 mr-2" />
-                                    Upload Edit
-                                </Button>
-                            )}
-
-                            {/* Mark Task Ready (Editor) */}
-                            {canMarkMyTaskReady && (
-                                <Button
-                                    title="Mark My Task as Ready"
-                                    className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                                    size="sm"
-                                    onClick={markMyTaskReady}
-                                >
-                                    <CheckCircle className="w-4 h-4 mr-2" />
-                                    Mark Ready
-                                </Button>
-                            )}
-
-                            {/* Approve (Creator) */}
-                            {canApprove && (
-                                <Button
-                                    title="Approve All Tasks"
-                                    className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                                    size="sm"
-                                    onClick={approveVideo}
-                                >
-                                    <CheckCircle className="w-4 h-4 mr-2" />
-                                    Approve All
-                                </Button>
-                            )}
-
-                            {/* Publish (Creator) */}
-                            {canPublish && (
-                                <Button
-                                    title="Publish to YouTube"
-                                    className="rounded-xl bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700"
-                                    size="sm"
-                                    disabled={uploadingVideo}
-                                    onClick={publishToYoutube}
-                                >
-                                    {uploadingVideo ? (
-                                        <>
-                                            <Loader2 className="animate-spin w-4 h-4 mr-2" />
-                                            Publishing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Upload className="w-4 h-4 mr-2" />
-                                            Publish
-                                        </>
+                                    <h3 className="font-bold text-xl text-gray-900 mb-2">{video.title}</h3>
+                                    {video.description && (
+                                        <p className="text-sm text-gray-600 line-clamp-2 mb-3">{video.description}</p>
                                     )}
-                                </Button>
+                                    {video.tags && (
+                                        <div className="flex gap-2 flex-wrap">
+                                            {video.tags.split(',').slice(0, 5).map((tag, i) => (
+                                                <span key={i} className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
+                                                    #{tag.trim()}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Task Assignments Section */}
+                            {assignments.length > 0 && (
+                                <div className="mb-4 p-4 bg-gradient-to-r from-brand-pale to-brand-light/50 rounded-xl border border-brand-light">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        <h4 className="font-semibold text-gray-900">Task Assignments</h4>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                        {assignments.map((assignment) => (
+                                            <div
+                                                key={assignment.id}
+                                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 ${assignment.task_status === 'completed'
+                                                    ? 'bg-green-50 border-green-300'
+                                                    : 'bg-neutral-50 border-gray-300'
+                                                    }`}
+                                            >
+                                                <span className="text-lg">{ROLE_ICONS[assignment.role] || '📋'}</span>
+                                                <div className="flex-grow min-w-0">
+                                                    <p className="text-xs font-semibold text-gray-900 truncate">
+                                                        {assignment.editor_email.split('@')[0]}
+                                                    </p>
+                                                    <p className="text-xs text-gray-600">
+                                                        {assignment.role.replace('_', ' ')}
+                                                    </p>
+                                                </div>
+                                                {assignment.task_status === 'completed' && (
+                                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
 
-                            {/* Delete (Creator Only) */}
+                            {/* Action Buttons Section */}
+                            <div className="flex items-center justify-between gap-3 flex-wrap pt-4 border-t border-gray-200">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {/* Preview Button */}
+                                    <Button
+                                        title="Preview Video"
+                                        className="rounded-xl bg-gradient-to-r from-brand to-brand-light hover:from-purple-700 hover:to-blue-700"
+                                        size="sm"
+                                        onClick={() => streamDialog.current?.click()}
+                                    >
+                                        <Play className="w-4 h-4 mr-2" />
+                                        Preview
+                                    </Button>
+
+                                    {/* Edit Button */}
+                                    {canEdit && (
+                                        <Button
+                                            title="Edit Metadata"
+                                            variant="outline"
+                                            className="rounded-xl"
+                                            size="sm"
+                                            onClick={() => promptInfo.current?.click()}
+                                        >
+                                            <Edit className="w-4 h-4 mr-2" />
+                                            Edit
+                                        </Button>
+                                    )}
+
+                                    {/* Download Button */}
+                                    <Button
+                                        title="Download Video"
+                                        variant="outline"
+                                        className="rounded-xl"
+                                        size="sm"
+                                        onClick={downloadVideo}
+                                    >
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Download
+                                    </Button>
+                                </div>
+
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {/* Replace Video (Editor Only) */}
+                                    {canReplace && (
+                                        <Button
+                                            title="Upload Edited Version"
+                                            className="rounded-xl bg-gradient-to-r from-success to-brand hover:from-emerald-700 hover:to-teal-700"
+                                            size="sm"
+                                            onClick={() => replaceDialog.current?.click()}
+                                        >
+                                            <UploadCloud className="w-4 h-4 mr-2" />
+                                            Upload Edit
+                                        </Button>
+                                    )}
+
+                                    {/* Mark Task Ready (Editor) */}
+                                    {canMarkMyTaskReady && (
+                                        <Button
+                                            title="Mark My Task as Ready"
+                                            className="rounded-xl bg-gradient-to-r from-success to-success-dark hover:from-green-700 hover:to-emerald-700"
+                                            size="sm"
+                                            onClick={markMyTaskReady}
+                                        >
+                                            <CheckCircle className="w-4 h-4 mr-2" />
+                                            Mark Ready
+                                        </Button>
+                                    )}
+
+                                    {/* Approve (Creator) */}
+                                    {canApprove && (
+                                        <Button
+                                            title="Approve All Tasks"
+                                            className="rounded-xl bg-gradient-to-r from-info to-info-dark hover:from-purple-700 hover:to-indigo-700"
+                                            size="sm"
+                                            onClick={approveVideo}
+                                        >
+                                            <CheckCircle className="w-4 h-4 mr-2" />
+                                            Approve All
+                                        </Button>
+                                    )}
+
+                                    {/* Publish (Creator) */}
+                                    {canPublish && (
+                                        <Button
+                                            title="Publish to YouTube"
+                                            className="rounded-xl bg-gradient-to-r from-error to-error-dark hover:from-red-700 hover:to-pink-700"
+                                            size="sm"
+                                            disabled={uploadingVideo}
+                                            onClick={publishToYoutube}
+                                        >
+                                            {uploadingVideo ? (
+                                                <>
+                                                    <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                                                    Publishing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload className="w-4 h-4 mr-2" />
+                                                    Publish
+                                                </>
+                                            )}
+                                        </Button>
+                                    )}
+
+                                    {/* Delete (Creator Only) */}
+                                    {userType === 'creator' && (
+                                        <Button
+                                            variant="destructive"
+                                            onClick={deleteVideoFunc}
+                                            className="rounded-xl"
+                                            size="sm"
+                                            title="Delete Video"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Task Assignment Component */}
                             {userType === 'creator' && (
-                                <Button
-                                    variant="destructive"
-                                    onClick={deleteVideoFunc}
-                                    className="rounded-xl"
-                                    size="sm"
-                                    title="Delete Video"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                    <TaskAssignment videoId={video.id} creatorEmail={creatorEmail} />
+                                </div>
                             )}
-                        </div>
-                    </div>
 
-                    {/* Task Assignment Component */}
-                    {userType === 'creator' && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                            <TaskAssignment videoId={video.id} creatorEmail={creatorEmail} />
-                        </div>
-                    )}
+                            <VideoComments
+                                videoId={video.id}
+                                currentUserEmail={userType === 'creator' ? creatorEmail : editorEmail}
+                                currentUserType={userType as 'creator' | 'editor'} // ✅ FIX: Type assertion
+                            />
                         </div>
                     </div>
                 )}

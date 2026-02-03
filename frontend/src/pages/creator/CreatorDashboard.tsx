@@ -55,7 +55,7 @@ export const CreatorDashboard = () => {
                     <p className="text-gray-600 mt-1">Here's what's happening with your videos today.</p>
                 </div>
                 <Link to="/creator/videos">
-                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
+                    <Button className="bg-gradient-to-r from-brand to-brand-dark hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
                         <Upload className="w-4 h-4 mr-2" />
                         Upload New Video
                     </Button>
@@ -68,33 +68,33 @@ export const CreatorDashboard = () => {
                     title="Total Videos"
                     value={metrics.totalVideos}
                     icon={Video}
-                    color="from-blue-500 to-blue-600"
-                    bgColor="bg-blue-50"
-                    textColor="text-blue-700"
+                    color="from-brand to-brand-dark"
+                    bgColor="bg-brand-pale"
+                    textColor="text-brand-dark"
                 />
                 <MetricCard
                     title="Drafts"
                     value={metrics.draftVideos}
                     icon={Clock}
-                    color="from-gray-500 to-gray-600"
-                    bgColor="bg-gray-50"
-                    textColor="text-gray-700"
+                    color="from-neutral-500 to-neutral-600"
+                    bgColor="bg-neutral-50"
+                    textColor="text-neutral-700"
                 />
                 <MetricCard
                     title="In Review"
                     value={metrics.inReview}
                     icon={TrendingUp}
-                    color="from-yellow-500 to-yellow-600"
-                    bgColor="bg-yellow-50"
-                    textColor="text-yellow-700"
+                    color="from-warning to-warning-dark"
+                    bgColor="bg-warning-light"
+                    textColor="text-warning-dark"
                 />
                 <MetricCard
                     title="Published"
                     value={metrics.published}
                     icon={CheckCircle}
-                    color="from-green-500 to-green-600"
-                    bgColor="bg-green-50"
-                    textColor="text-green-700"
+                    color="from-success to-success-dark"
+                    bgColor="bg-success-light"
+                    textColor="text-success-dark"
                 />
             </div>
 
@@ -103,19 +103,19 @@ export const CreatorDashboard = () => {
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Link to="/creator/videos">
-                        <Button variant="outline" className="w-full h-24 flex flex-col items-center justify-center gap-2 rounded-xl border-2 hover:border-blue-500 hover:bg-blue-50 transition-all">
+                        <Button variant="outline" className="w-full h-24 flex flex-col items-center justify-center gap-2 rounded-xl border-2 hover:border-brand hover:bg-brand-pale transition-all">
                             <Video className="w-6 h-6" />
                             <span className="font-semibold">Manage Videos</span>
                         </Button>
                     </Link>
                     <Link to="/creator/team">
-                        <Button variant="outline" className="w-full h-24 flex flex-col items-center justify-center gap-2 rounded-xl border-2 hover:border-purple-500 hover:bg-purple-50 transition-all">
+                        <Button variant="outline" className="w-full h-24 flex flex-col items-center justify-center gap-2 rounded-xl border-2 hover:border-info hover:bg-info-light transition-all">
                             <Users className="w-6 h-6" />
                             <span className="font-semibold">Manage Team</span>
                         </Button>
                     </Link>
                     <Link to="/creator/marketplace">
-                        <Button variant="outline" className="w-full h-24 flex flex-col items-center justify-center gap-2 rounded-xl border-2 hover:border-emerald-500 hover:bg-emerald-50 transition-all">
+                        <Button variant="outline" className="w-full h-24 flex flex-col items-center justify-center gap-2 rounded-xl border-2 hover:border-success hover:bg-success-light transition-all">
                             <TrendingUp className="w-6 h-6" />
                             <span className="font-semibold">Find Editors</span>
                         </Button>
@@ -127,7 +127,7 @@ export const CreatorDashboard = () => {
 
             {/* Primary Editor Info */}
             {editor && (
-                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-200 p-6">
+                <div className="bg-gradient-to-r from-success-light to-brand-pale rounded-2xl border-2 border-success p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-lg font-bold text-gray-900">Your Primary Editor</h3>

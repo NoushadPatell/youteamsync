@@ -73,16 +73,16 @@ export const ChatPanel=memo(({fromUser,toUser,requestEditor}:{fromUser:string,to
     
     return <Sheet>
         <SheetTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
+            <Button className="bg-gradient-to-r from-brand to-brand-light hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Chat
             </Button>
         </SheetTrigger>
         <SheetContent className="flex flex-col p-0 sm:max-w-md rounded-l-2xl">
             {/* Header */}
-            <SheetHeader className="p-6 pb-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
+            <SheetHeader className="p-6 pb-4 border-b border-gray-200 bg-gradient-to-r rom-brand-pale to-brand-light/30">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-md">
+                    <div className="w-10 h-10 bg-gradient-to-br from-brand to-brand-light rounded-xl flex items-center justify-center shadow-md">
                         <MessageCircle className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-grow min-w-0">
@@ -103,8 +103,8 @@ export const ChatPanel=memo(({fromUser,toUser,requestEditor}:{fromUser:string,to
             >
                 {chats.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                            <MessageCircle className="w-8 h-8 text-blue-600" />
+                        <div className="w-16 h-16 bg-brand-pale rounded-full flex items-center justify-center mb-4">
+                            <MessageCircle className="w-8 h-8 text-brand" />
                         </div>
                         <p className="text-gray-600 font-medium">No messages yet</p>
                         <p className="text-sm text-gray-500 mt-1">Start the conversation!</p>
@@ -120,7 +120,7 @@ export const ChatPanel=memo(({fromUser,toUser,requestEditor}:{fromUser:string,to
                                 <div 
                                     className={`max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm ${
                                         isFromMe 
-                                            ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-br-sm' 
+                                            ? 'bg-gradient-to-r from-brand to-brand-light text-white rounded-br-sm' 
                                             : 'bg-white text-gray-900 border border-gray-200 rounded-bl-sm'
                                     }`}
                                 >
@@ -150,7 +150,7 @@ export const ChatPanel=memo(({fromUser,toUser,requestEditor}:{fromUser:string,to
                     <Button 
                         onClick={() => sendMessage(chatInput)}
                         disabled={!chatInput.trim()}
-                        className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-xl px-4 shadow-md"
+                        className="bg-gradient-to-r from-brand to-brand-light hover:from-blue-700 hover:to-cyan-700 rounded-xl px-4 shadow-md"
                     >
                         <Send className="w-4 h-4" />
                     </Button>
