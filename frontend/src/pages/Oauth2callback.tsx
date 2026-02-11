@@ -18,7 +18,7 @@ export const Oauth2callback = () => {
                 headers: {
                     "content-type": "application/json"
                 },
-                body: JSON.stringify({ code })
+                body: JSON.stringify({ code, userType: loginType })
             }).then((response) => {
                 return response.json();
             }).then(async (output) => {

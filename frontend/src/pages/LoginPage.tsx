@@ -19,9 +19,10 @@ export const LoginPage = () => {
             console.log(err);
         })
     }, [])
+    
     const CreatorSignUpFunc = useCallback(() => {
         setShowPage(false);
-        fetch(`${import.meta.env.VITE_BACKEND}` + '/getAuthUrl').then((res) => {
+        fetch(`${import.meta.env.VITE_BACKEND}/getAuthUrl?userType=creator`).then((res) => {
             return res.json();
         }).then((output) => {
             const { authorizeUrl } = output;
@@ -32,7 +33,6 @@ export const LoginPage = () => {
             alert("error occured. try again")
             setShowPage(true);
         })
-
     }, [])
 
     useEffect(() => {
@@ -45,199 +45,630 @@ export const LoginPage = () => {
         else {
             setShowPage(true)
         }
-
     }, [navigate])
-    return <div className={"h-svh flex flex-col items-center justify-center gap-2 relative overflow-hidden bg-gradient-to-br from-brand-dark via-brand to-brand-dark"}>
 
-        {/* Animated grid background */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
+    return (
+        <div className="login-container">
+            {/* Ambient background layers */}
+            <div className="ambient-bg">
+                <div className="gradient-orb orb-1"></div>
+                <div className="gradient-orb orb-2"></div>
+                <div className="gradient-orb orb-3"></div>
+                <div className="noise-overlay"></div>
+            </div>
 
-        {/* Floating geometric shapes */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 border-4 border-brand-light/30 rounded-full animate-float" style={{ animationDelay: '0s' }}></div>
-        <div className="absolute top-1/3 right-1/4 w-48 h-48 border-4 border-brand-light/30 rotate-45 animate-float-reverse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 border-4 border-brand-pale/30 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
+            {/* Decorative grid */}
+            <div className="perspective-grid"></div>
 
-        {/* Video/Film strip decorative elements */}
-        <svg className="absolute top-10 left-10 w-32 h-32 text-brand/20 animate-pulse-slow" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z" />
-        </svg>
-
-        <svg className="absolute bottom-10 right-10 w-40 h-40 text-brand-light/20 animate-spin-slow" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
-        </svg>
-
-        {/* Clapperboard icon */}
-        <svg className="absolute top-1/2 left-10 w-24 h-24 text-brand-pale/30 -rotate-12 animate-float" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 3v2h-2V3H8v2H6V3H4v18h16V3h-2zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm10 12H8V9h8v10zm2 0h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2z" />
-        </svg>
-
-        {/* Camera icon */}
-        <svg className="absolute bottom-1/3 right-1/4 w-28 h-28 text-indigo-500/15 rotate-12 animate-float-reverse" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
-        </svg>
-
-        {/* Glowing orbs */}
-        <div className="absolute top-20 left-20 w-96 h-96 bg-brand/20 rounded-full blur-3xl animate-pulse-slow"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-brand-light/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-brand-pale/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '3s' }}></div>
-
-        {ShowPage ? <>
-            <div className={"p-8 rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/30 shadow-2xl font-extrabold text-5xl bg-gradient-to-r from-brand-dark via-brand to-brand-light bg-clip-text text-transparent animate-fade-in relative z-10"}>
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-dark/30 via-brand/30 to-brand-light/30 rounded-3xl blur-xl -z-10 animate-glow"></div>
-                <div className="flex items-center gap-3">
-                    <svg className="w-12 h-12 text-brand" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+            {/* Floating video elements */}
+            <div className="floating-elements">
+                <div className="float-item item-1">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="2" y="6" width="20" height="12" rx="2"/>
+                        <path d="M22 9l-6 3 6 3V9z"/>
                     </svg>
-                    YouTeamSync
+                </div>
+                <div className="float-item item-2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10 8 16 12 10 16 10 8"/>
+                    </svg>
+                </div>
+                <div className="float-item item-3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M23 7l-7 5 7 5V7z"/>
+                        <rect x="1" y="5" width="15" height="14" rx="2"/>
+                    </svg>
                 </div>
             </div>
 
-            <div className={"flex flex-col items-center gap-4 mt-6 animate-fade-in-delay relative z-10 max-w-2xl mx-auto px-4"}>
-                <p className="text-white/90 text-center text-lg font-medium leading-relaxed">
-                    Streamline your YouTube workflow from raw footage to published content
-                </p>
-                <p className="text-white/70 text-center text-sm leading-relaxed">
-                    Upload videos, assign to your editing team, review their work, and publish to YouTube—all in one place
-                </p>
+            {/* Main content */}
+            <main className="main-content">
+                {ShowPage ? (
+                    <>
+                        {/* Logo and branding */}
+                        <div className="brand-section">
+                            <div className="logo-container">
+                                <div className="logo-icon">
+                                    <svg viewBox="0 0 40 40" fill="none">
+                                        <rect x="4" y="8" width="24" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
+                                        <path d="M28 14l8 4-8 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <circle cx="14" cy="16" r="1.5" fill="currentColor"/>
+                                        <rect x="4" y="28" width="32" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                                        <rect x="6" y="32" width="28" height="1" rx="0.5" fill="currentColor" opacity="0.2"/>
+                                    </svg>
+                                </div>
+                                <h1 className="brand-name">YouTeamSync</h1>
+                            </div>
+                            <p className="brand-tagline">
+                                Production workflow for YouTube creators
+                            </p>
+                        </div>
 
-                {/* Feature highlights */}
-                <div className="flex flex-wrap justify-center gap-3 mt-2 mb-4">
-                    <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
-                        <svg className="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <span className="text-white/80 text-xs font-medium">Video Editing</span>
+                        {/* Feature showcase */}
+                        <div className="features-grid">
+                            <div className="feature-item">
+                                <div className="feature-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <span>Upload & Store</span>
+                            </div>
+                            <div className="feature-item">
+                                <div className="feature-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                </div>
+                                <span>Team Edits</span>
+                            </div>
+                            <div className="feature-item">
+                                <div className="feature-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <span>Review & Approve</span>
+                            </div>
+                            <div className="feature-item">
+                                <div className="feature-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    </svg>
+                                </div>
+                                <span>Publish Direct</span>
+                            </div>
+                        </div>
+
+                        {/* CTA Section */}
+                        <div className="cta-section">
+                            <h2 className="cta-title">Choose your role</h2>
+                            
+                            <div className="role-cards">
+                                <div className="role-card creator-card" onClick={CreatorSignUpFunc}>
+                                    <div className="card-glow"></div>
+                                    <div className="card-content">
+                                        <div className="role-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M23 7l-7 5 7 5V7z"/>
+                                                <rect x="1" y="5" width="15" height="14" rx="2"/>
+                                            </svg>
+                                        </div>
+                                        <h3 className="role-title">Creator</h3>
+                                        <p className="role-description">
+                                            Upload content, manage your team, and publish to YouTube
+                                        </p>
+                                        <div className="card-arrow">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="role-card editor-card" onClick={EditorLoginFunc}>
+                                    <div className="card-glow"></div>
+                                    <div className="card-content">
+                                        <div className="role-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            </svg>
+                                        </div>
+                                        <h3 className="role-title">Editor</h3>
+                                        <p className="role-description">
+                                            Access assigned projects, edit videos, and submit for review
+                                        </p>
+                                        <div className="card-arrow">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer note */}
+                        <p className="footer-note">
+                            Streamline your entire YouTube production pipeline
+                        </p>
+                    </>
+                ) : (
+                    <div className="loading-state">
+                        <div className="loader-container">
+                            <LuLoader2 className="loader-icon" size={48} />
+                            <div className="loader-glow"></div>
+                        </div>
+                        <p className="loading-text">Initializing...</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
-                        <svg className="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span className="text-white/80 text-xs font-medium">Thumbnails</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
-                        <svg className="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        <span className="text-white/80 text-xs font-medium">Metadata</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
-                        <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-white/80 text-xs font-medium">Team Approval</span>
-                    </div>
-                </div>
+                )}
+            </main>
 
-                <i className="text-white/80 text-lg font-light tracking-wide mt-2">Get Started as</i>
-                <div className={"flex gap-6"}>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-                    <Button
-                        className={"bg-gradient-to-br from-brand to-brand-dark hover:from-brand-light hover:to-brand font-bold text-lg px-8 py-6 rounded-2xl shadow-lg hover:shadow-brand/50 hover:scale-105 transition-all duration-300 border border-brand-light/30 relative overflow-hidden group"}
-                        onClick={CreatorSignUpFunc}
-                    >
-                        <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
-                        <span className="relative flex flex-col items-center gap-1">
-                            <span className="flex items-center gap-2">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                                Creator
-                            </span>
-                            <span className="text-xs font-normal text-brand-pale">Upload & Manage</span>
-                        </span>
-                    </Button>
-                    <Button
-                        className={"font-bold text-lg px-8 py-6 rounded-2xl shadow-lg bg-gradient-to-br from-success to-success-dark hover:from-success-light hover:to-success hover:shadow-success/50 hover:scale-105 transition-all duration-300 border border-success-light/30 relative overflow-hidden group"}
-                        onClick={EditorLoginFunc}
-                    >
-                        <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
-                        <span className="relative flex flex-col items-center gap-1">
-                            <span className="flex items-center gap-2">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                                Editor
-                            </span>
-                            <span className="text-xs font-normal text-success-light">Edit & Create</span>
-                        </span>
-                    </Button>
-                </div>
+                .login-container {
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                    overflow: hidden;
+                    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1629 100%);
+                    font-family: 'Sora', sans-serif;
+                }
 
-            </div>
+                /* Ambient background */
+                .ambient-bg {
+                    position: absolute;
+                    inset: 0;
+                    overflow: hidden;
+                }
 
-        </> :
-            <div className="relative z-10">
-                <LuLoader2 className={"animate-spin text-white drop-shadow-lg"} size={60} />
-                <div className="absolute inset-0 bg-brand/30 rounded-full blur-xl animate-pulse"></div>
-            </div>
-        }
+                .gradient-orb {
+                    position: absolute;
+                    border-radius: 50%;
+                    filter: blur(80px);
+                    opacity: 0.15;
+                    animation: float-orb 20s ease-in-out infinite;
+                }
 
-        <style>{`
-            @keyframes gradient-slow {
-                0%, 100% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-            }
-            @keyframes pulse-slow {
-                0%, 100% { opacity: 0.3; transform: scale(1); }
-                50% { opacity: 0.6; transform: scale(1.1); }
-            }
-            @keyframes fade-in {
-                from { opacity: 0; transform: translateY(-20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            @keyframes fade-in-delay {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            @keyframes float {
-                0%, 100% { transform: translateY(0px) rotate(0deg); }
-                50% { transform: translateY(-20px) rotate(5deg); }
-            }
-            @keyframes float-reverse {
-                0%, 100% { transform: translateY(0px) rotate(45deg); }
-                50% { transform: translateY(20px) rotate(50deg); }
-            }
-            @keyframes spin-slow {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            @keyframes glow {
-                0%, 100% { opacity: 0.5; }
-                50% { opacity: 1; }
-            }       
-            .bg-grid-pattern {
-                background-image: 
-                linear-gradient(to right, rgba(106, 137, 167, 0.1) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(106, 137, 167, 0.1) 1px, transparent 1px);
-                background-size: 50px 50px;
-            }
-            .animate-gradient-slow {
-                background-size: 200% 200%;
-                animation: gradient-slow 15s ease infinite;
-            }
-            .animate-pulse-slow {
-                animation: pulse-slow 4s ease-in-out infinite;
-            }
-            .animate-fade-in {
-                animation: fade-in 0.8s ease-out forwards;
-            }
-            .animate-fade-in-delay {
-                animation: fade-in-delay 0.8s ease-out 0.2s forwards;
-                opacity: 0;
-            }
-            .animate-float {
-                animation: float 6s ease-in-out infinite;
-            }
-            .animate-float-reverse {
-                animation: float-reverse 7s ease-in-out infinite;
-            }
-            .animate-spin-slow {
-                animation: spin-slow 20s linear infinite;
-            }
-            .animate-glow {
-                animation: glow 3s ease-in-out infinite;
-            }
-        `}</style>
+                .orb-1 {
+                    width: 600px;
+                    height: 600px;
+                    background: radial-gradient(circle, #3b82f6, transparent);
+                    top: -200px;
+                    left: -200px;
+                    animation-delay: 0s;
+                }
 
-    </div>
-}
+                .orb-2 {
+                    width: 500px;
+                    height: 500px;
+                    background: radial-gradient(circle, #8b5cf6, transparent);
+                    bottom: -150px;
+                    right: -150px;
+                    animation-delay: 7s;
+                }
+
+                .orb-3 {
+                    width: 400px;
+                    height: 400px;
+                    background: radial-gradient(circle, #06b6d4, transparent);
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    animation-delay: 14s;
+                }
+
+                .noise-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+                    opacity: 0.3;
+                }
+
+                /* Perspective grid */
+                .perspective-grid {
+                    position: absolute;
+                    inset: 0;
+                    background-image: 
+                        linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+                    background-size: 60px 60px;
+                    transform: perspective(500px) rotateX(60deg);
+                    transform-origin: center top;
+                    opacity: 0.2;
+                    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+                }
+
+                /* Floating elements */
+                .floating-elements {
+                    position: absolute;
+                    inset: 0;
+                    pointer-events: none;
+                }
+
+                .float-item {
+                    position: absolute;
+                    width: 60px;
+                    height: 60px;
+                    color: rgba(59, 130, 246, 0.15);
+                    animation: float-drift 25s ease-in-out infinite;
+                }
+
+                .float-item svg {
+                    width: 100%;
+                    height: 100%;
+                }
+
+                .item-1 {
+                    top: 15%;
+                    left: 10%;
+                    animation-delay: 0s;
+                }
+
+                .item-2 {
+                    top: 70%;
+                    left: 15%;
+                    animation-delay: 8s;
+                }
+
+                .item-3 {
+                    top: 25%;
+                    right: 12%;
+                    animation-delay: 16s;
+                }
+
+                /* Main content */
+                .main-content {
+                    position: relative;
+                    z-index: 10;
+                    width: 100%;
+                    max-width: 1000px;
+                    padding: 3rem 2rem;
+                    animation: fade-in 0.8s ease-out;
+                }
+
+                /* Brand section */
+                .brand-section {
+                    text-align: center;
+                    margin-bottom: 3rem;
+                }
+
+                .logo-container {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 1rem;
+                    margin-bottom: 0.75rem;
+                    animation: slide-down 0.6s ease-out;
+                }
+
+                .logo-icon {
+                    width: 50px;
+                    height: 50px;
+                    color: #3b82f6;
+                    filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.4));
+                }
+
+                .brand-name {
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    letter-spacing: -0.02em;
+                }
+
+                .brand-tagline {
+                    color: #94a3b8;
+                    font-size: 1rem;
+                    font-weight: 300;
+                    letter-spacing: 0.05em;
+                    animation: fade-in 0.8s ease-out 0.2s both;
+                }
+
+                /* Features grid */
+                .features-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1rem;
+                    margin-bottom: 3rem;
+                    animation: fade-in 0.8s ease-out 0.3s both;
+                }
+
+                .feature-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 1rem 1.25rem;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 12px;
+                    color: #cbd5e1;
+                    font-size: 0.875rem;
+                    font-weight: 400;
+                    backdrop-filter: blur(10px);
+                    transition: all 0.3s ease;
+                }
+
+                .feature-item:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-color: rgba(59, 130, 246, 0.3);
+                    transform: translateY(-2px);
+                }
+
+                .feature-icon {
+                    width: 20px;
+                    height: 20px;
+                    color: #3b82f6;
+                    flex-shrink: 0;
+                }
+
+                /* CTA Section */
+                .cta-section {
+                    margin-bottom: 2rem;
+                }
+
+                .cta-title {
+                    text-align: center;
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    color: #e2e8f0;
+                    margin-bottom: 2rem;
+                    letter-spacing: -0.01em;
+                    animation: fade-in 0.8s ease-out 0.4s both;
+                }
+
+                /* Role cards */
+                .role-cards {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 1.5rem;
+                    animation: fade-in 0.8s ease-out 0.5s both;
+                }
+
+                .role-card {
+                    position: relative;
+                    padding: 2rem;
+                    background: rgba(255, 255, 255, 0.04);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 20px;
+                    cursor: pointer;
+                    overflow: hidden;
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .role-card::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.03) 100%);
+                    opacity: 0;
+                    transition: opacity 0.4s ease;
+                }
+
+                .role-card:hover {
+                    transform: translateY(-8px);
+                    border-color: rgba(59, 130, 246, 0.4);
+                }
+
+                .role-card:hover::before {
+                    opacity: 1;
+                }
+
+                .card-glow {
+                    position: absolute;
+                    top: -50%;
+                    left: -50%;
+                    width: 200%;
+                    height: 200%;
+                    background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 60%);
+                    opacity: 0;
+                    transition: opacity 0.4s ease;
+                }
+
+                .role-card:hover .card-glow {
+                    opacity: 1;
+                    animation: glow-pulse 2s ease-in-out infinite;
+                }
+
+                .card-content {
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .role-icon {
+                    width: 48px;
+                    height: 48px;
+                    margin-bottom: 1.25rem;
+                    color: #3b82f6;
+                    transition: all 0.3s ease;
+                }
+
+                .creator-card:hover .role-icon {
+                    color: #60a5fa;
+                    transform: scale(1.1) rotate(5deg);
+                }
+
+                .editor-card:hover .role-icon {
+                    color: #10b981;
+                    transform: scale(1.1) rotate(-5deg);
+                }
+
+                .editor-card .role-icon {
+                    color: #10b981;
+                }
+
+                .role-title {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    color: #f8fafc;
+                    margin-bottom: 0.5rem;
+                    letter-spacing: -0.01em;
+                }
+
+                .role-description {
+                    font-size: 0.9rem;
+                    color: #94a3b8;
+                    line-height: 1.6;
+                    margin-bottom: 1rem;
+                }
+
+                .card-arrow {
+                    width: 24px;
+                    height: 24px;
+                    color: #3b82f6;
+                    opacity: 0;
+                    transform: translateX(-10px);
+                    transition: all 0.3s ease;
+                }
+
+                .role-card:hover .card-arrow {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+
+                /* Footer note */
+                .footer-note {
+                    text-align: center;
+                    font-size: 0.875rem;
+                    color: #64748b;
+                    font-weight: 300;
+                    animation: fade-in 0.8s ease-out 0.6s both;
+                }
+
+                /* Loading state */
+                .loading-state {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 1.5rem;
+                    min-height: 60vh;
+                }
+
+                .loader-container {
+                    position: relative;
+                }
+
+                .loader-icon {
+                    color: #3b82f6;
+                    animation: spin 1s linear infinite;
+                    filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.6));
+                }
+
+                .loader-glow {
+                    position: absolute;
+                    inset: -20px;
+                    background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent);
+                    animation: glow-pulse 2s ease-in-out infinite;
+                }
+
+                .loading-text {
+                    color: #94a3b8;
+                    font-size: 0.9rem;
+                    font-weight: 300;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                }
+
+                /* Animations */
+                @keyframes fade-in {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes slide-down {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes float-orb {
+                    0%, 100% {
+                        transform: translate(0, 0) scale(1);
+                    }
+                    33% {
+                        transform: translate(30px, -30px) scale(1.1);
+                    }
+                    66% {
+                        transform: translate(-20px, 20px) scale(0.9);
+                    }
+                }
+
+                @keyframes float-drift {
+                    0%, 100% {
+                        transform: translate(0, 0) rotate(0deg);
+                    }
+                    25% {
+                        transform: translate(20px, -20px) rotate(90deg);
+                    }
+                    50% {
+                        transform: translate(-15px, 15px) rotate(180deg);
+                    }
+                    75% {
+                        transform: translate(25px, 10px) rotate(270deg);
+                    }
+                }
+
+                @keyframes spin {
+                    from {
+                        transform: rotate(0deg);
+                    }
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+
+                @keyframes glow-pulse {
+                    0%, 100% {
+                        opacity: 0.4;
+                        transform: scale(1);
+                    }
+                    50% {
+                        opacity: 0.8;
+                        transform: scale(1.05);
+                    }
+                }
+
+                /* Responsive design */
+                @media (max-width: 768px) {
+                    .main-content {
+                        padding: 2rem 1rem;
+                    }
+
+                    .brand-name {
+                        font-size: 2rem;
+                    }
+
+                    .features-grid {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .role-cards {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .float-item {
+                        display: none;
+                    }
+                }
+            `}</style>
+        </div>
+    );
+};

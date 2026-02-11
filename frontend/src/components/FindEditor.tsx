@@ -148,13 +148,13 @@ export const FindEditor=memo(({creatorEmail}:{creatorEmail:string})=>{
                 )}
             </div>
 
-            {editors.length > 0 && (
+            {/* {editors.length > 0 && (
                 <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 text-center">
                     <p className="text-sm text-gray-600">
                         💡 <span className="font-semibold">Pro tip:</span> Start a chat to discuss your project requirements
                     </p>
                 </div>
-            )}
+            )} */}
         </div>
     </div>
 })

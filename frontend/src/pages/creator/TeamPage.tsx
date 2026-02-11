@@ -17,7 +17,7 @@ export const TeamPage = memo(() => {
             </div>
 
             {/* Primary Editor Card */}
-            <MyEditor email={email} editor={editor} setEditor={setEditor} />
+            {/* <MyEditor email={email} editor={editor} setEditor={setEditor} /> */}
 
             {/* Team Management (Multi-role system) */}
             <TeamManagement creatorEmail={email} />

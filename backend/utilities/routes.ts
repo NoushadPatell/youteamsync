@@ -47,19 +47,31 @@ const scopes = [
 ];
 
 // ============ OAUTH ROUTES ============
-router.get('/getAuthUrl', (_req, res) => {
+router.get('/getAuthUrl', (req, res) => {
+    const { userType } = req.query; // 'creator' or 'editor'
+
+    // Define scopes based on user type
+    const requestedScopes = userType === 'editor'
+        ? ['https://www.googleapis.com/auth/userinfo.email'] // Editors: email only
+        : [
+            'https://www.googleapis.com/auth/youtube.upload',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/youtube',
+        ]; // Creators: full YouTube access
+
     const authorizeUrl = oAuth2Client.generateAuthUrl({
-        access_type: 'offline',           // ✅ Required for refresh token
-        scope: scopes,
+        access_type: 'offline',
+        scope: requestedScopes,
         include_granted_scopes: true,
-        prompt: 'consent'                 // ✅ ADD THIS - forces refresh token every time
+        prompt: 'consent'
     });
+
     res.send(JSON.stringify({ authorizeUrl }));
 });
 
 router.post('/getEmail', async (req, res) => {
     try {
-        const { code } = req.body;
+        const { code, userType } = req.body;
 
         if (!code) {
             res.status(400).send(JSON.stringify({ "error": "No authorization code provided" }));
@@ -117,39 +129,42 @@ router.post('/getEmail', async (req, res) => {
             const result = await query('SELECT * FROM creators WHERE email = $1', [email]);
 
             if (result.rows.length === 0) {
-                // ✅ New user - must have refresh token
-                if (!refresh_token) {
-                    console.error('❌ New user but no refresh token!');
-                    res.status(500).send(JSON.stringify({
-                        error: "Authorization failed. Please try again."
-                    }));
-                    return;
+                // For EDITORS: we might not get a refresh_token (and that's OK!)
+                if (userType === 'editor') {
+                    // Editors don't need refresh tokens
+                    await query(
+                        'INSERT INTO creators (email, access_token, refresh_token, editor) VALUES ($1, $2, $3, $4)',
+                        [email, access_token || '', '', ""] // Empty refresh_token is fine
+                    );
+                } else {
+                    // Creators MUST have refresh_token
+                    if (!refresh_token) {
+                        res.status(500).send(JSON.stringify({
+                            error: "Authorization failed. Please try again."
+                        }));
+                        return;
+                    }
+                    await query(
+                        'INSERT INTO creators (email, access_token, refresh_token, editor) VALUES ($1, $2, $3, $4)',
+                        [email, access_token, refresh_token, ""]
+                    );
                 }
-
-                console.log('Creating new creator with refresh token');
-                await query(
-                    'INSERT INTO creators (email, access_token, refresh_token, editor) VALUES ($1, $2, $3, $4)',
-                    [email, access_token, refresh_token, ""]
-                );
             } else {
-                // ✅ Existing user - update tokens
+                // Existing user - update logic stays mostly the same
                 const existingRefreshToken = result.rows[0].refresh_token;
-
-                // Use new refresh token if provided, otherwise keep existing
                 const tokenToStore = refresh_token || existingRefreshToken;
 
-                if (!tokenToStore) {
-                    console.error('❌ No refresh token available for existing user!');
+                // For editors, empty refresh_token is acceptable
+                if (userType !== 'editor' && !tokenToStore) {
                     res.status(500).send(JSON.stringify({
-                        error: "No valid refresh token. Please revoke access in Google settings and re-authorize."
+                        error: "No valid refresh token. Please revoke access and re-authorize."
                     }));
                     return;
                 }
 
-                console.log('Updating existing creator, refresh token:', refresh_token ? 'NEW' : 'EXISTING');
                 await query(
                     'UPDATE creators SET access_token = $1, refresh_token = $2 WHERE email = $3',
-                    [access_token, tokenToStore, email]
+                    [access_token, tokenToStore || '', email]
                 );
             }
 
@@ -514,14 +529,14 @@ router.post('/api/videos/:creatorEmail/:videoId/publish', async (req: express.Re
         } = videoResult.rows[0];
 
         let enhancedDescription = description || '';
-        
+
         if (tags) {
             const tagsArray = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
             const hashtags = tagsArray
                 .slice(0, 15) // YouTube allows max 15 hashtags
                 .map((tag: string) => `#${tag.replace(/\s+/g, '')}`) // Remove spaces, add #
                 .join(' ');
-            
+
             // Add hashtags at the end of description
             if (hashtags) {
                 enhancedDescription = `${enhancedDescription}\n\n${hashtags}`;
